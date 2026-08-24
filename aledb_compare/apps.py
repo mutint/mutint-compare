@@ -1,3 +1,5 @@
+import os
+
 from django.apps import AppConfig
 
 
@@ -16,6 +18,7 @@ class CompareConfig(AppConfig):
 
     def ready(self):
         from django.urls import re_path, include
+        from aledb_common.example_registry import register_example_dataset
         from aledb_common.plugin_registry import register_plugin_urlpatterns
         from aledb_common.about_registry import register_about_section
         from aledb_common.nav_registry import (
@@ -30,3 +33,11 @@ class CompareConfig(AppConfig):
         register_nav_item('Compare', url_name='compare', section=EXPERIMENT_SECTION)
         register_about_section(self, name='aledb-compare',
                                template='about/sections/aledb_compare.html')
+
+        # A pivot table is only legible against a pattern -- rows present everywhere,
+        # rows in one sample only, and every mutation type. See
+        # examples/compare/README.md.
+        register_example_dataset(
+            'aledb-compare-example',
+            os.path.join(os.path.dirname(__file__), 'examples', 'compare'),
+            description='Two lineages over three flasks, every mutation type, one population sample.')
