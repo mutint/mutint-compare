@@ -1,0 +1,8 @@
+<p><b>Compare</b> pivots a whole experiment into one table: every mutation is a row, every
+    sequenced sample a column, and each cell carries the frequency at which that mutation was
+    called in that sample. It is the view for asking which mutations recur across an ALE, as
+    opposed to the per-sample <b>Mutations</b> page, which shows one sample's calls in breseq's
+    own column order.</p>
+<p>It computes nothing and stores nothing. The rows come from aledb-core's mutation table
+    builder, the same one behind Search, Fixed Mutations and Converged Mutations, so a
+    deployment that removes this plugin loses the page and nothing else.</p>

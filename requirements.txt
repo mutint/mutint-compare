@@ -1,0 +1,4 @@
+# Install aledb-core dependencies first:
+#   pip install -r aledb-core/requirements.txt
+#
+# aledb-compare-specific additions (if any):
