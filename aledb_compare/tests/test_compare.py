@@ -99,15 +99,21 @@ class CompareTestCase(TestCase):
         self.assertNotIn('name="show_exp_filtered"', html)
 
     def test_the_shared_table_actions_are_reversed_not_hardcoded(self):
-        """table_template.js reverses the three endpoints by name. If it went back to
+        """table_template.js reverses the tag endpoints by name. If it went back to
         literals, this page would still work and Search would silently break, so the
-        assertion is on the rendered URL rather than on behaviour."""
+        assertion is on the rendered URL rather than on behaviour.
+
+        Two endpoints, not three. `add_to_exp_filter` was the third: it appended a mutation id
+        to `AleExperimentFilter.ignored_mutations` so the row would stop being drawn -- a
+        delete that kept the row, per experiment and unattributed. aledb-core's
+        `aledb_mutation_editor` replaces it.
+        """
         html = self._get().content.decode()
 
         self.assertIn("/mutation-table/toggle-mut-tag/", html)
         self.assertIn("/mutation-table/toggle-rep-tag", html)
-        self.assertIn("/mutation-table/add_to_exp_filter", html)
         self.assertNotIn("/mutations/toggle-mut-tag", html)
+        self.assertNotIn("add_to_exp_filter", html)
 
     def test_no_experiment_selected_is_explained(self):
         response = self.client.get(PAGE)
