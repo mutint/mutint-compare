@@ -43,7 +43,7 @@ class CompareTestCase(TestCase):
             gene="thrA", ale_experiment=self.experiment)
         ObservedMutation.objects.create(
             sequencing_experiment=self.sample, mutation=self.mutation,
-            breseq_present=True, frequency=0.5)
+            present=True, frequency=0.5)
 
     def _get(self, **params):
         params.setdefault("ale_experiment_id", self.experiment.ale_id)
@@ -128,3 +128,41 @@ class CompareTestCase(TestCase):
         html = self._get().content.decode()
 
         self.assertNotIn("A1 F30000 I1 R1", html)
+
+    # --- a mutation nobody called ---------------------------------------------------------
+    #
+    # Core covers `get_mutation_table_body` directly, but this is the table people actually
+    # read an experiment from, and it is the reason the gap mattered: a mutation added
+    # through /mutation-editor/add was stored, listed on the editor's own per-sample page,
+    # and absent here -- which reads as the add having silently failed.
+
+    def _add_by_hand(self, position=7777):
+        from decimal import Decimal
+
+        from aledb_mutation_editor.record_builder import build_observation
+
+        mutation = Mutation.objects.create(
+            mutation_type="SNP", position=position, sequence_change="C>G",
+            gene="ilvG", ale_experiment=self.experiment)
+        ObservedMutation.objects.create(
+            sequencing_experiment=self.sample, mutation=mutation,
+            **build_observation(Decimal("1.0")))
+        return mutation
+
+    def test_a_hand_added_mutation_has_a_row_on_the_compare_page(self):
+        self._add_by_hand()
+
+        html = self._get().content.decode("utf-8")
+
+        self.assertIn("7,777", html)
+        self.assertIn("ilvG", html)
+
+    def test_the_called_mutation_is_still_there_beside_it(self):
+        """The fix widened what renders; it must not have swapped one rule for another that
+        drops what the old one caught."""
+        self._add_by_hand()
+
+        html = self._get().content.decode("utf-8")
+
+        self.assertIn("1,000", html)
+        self.assertIn("thrA", html)
