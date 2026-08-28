@@ -44,7 +44,6 @@ def mutation_table(request):
 
         table_header = mutation_table_builder.get_table_header(request.user, ordered_reseq_dict, experiment)
 
-        show_global_filtered = request.GET.get('show_global_filtered', '') == '1'
         show_exp_filtered = request.GET.get('show_exp_filtered', '') == '1'
 
         # No filter_type: every mutation type renders here, AMP included. This used to pass
@@ -52,7 +51,7 @@ def mutation_table(request):
         # kept AMP rows out, and /mutations/amplifications was the only place they appeared.
         # That page is gone, so excluding them here would hide them entirely.
         table_body = _get_table_body(experiment, ordered_reseq_dict, request.user,
-                                     skip_global_filter=show_global_filtered, skip_experiment_filter=show_exp_filtered)
+                                     skip_experiment_filter=show_exp_filtered)
 
         hidden_columns = request.GET.get('hidden_columns', "")
 
@@ -77,7 +76,6 @@ def mutation_table(request):
                         # is what keeps them off Fixation, Converge and Search, where they
                         # used to render permanently inert.
                         "show_filter_toggles": True,
-                        "show_global_filtered": show_global_filtered,
                         "show_exp_filtered": show_exp_filtered,
                         })
         logger.info("mutation performance", extra=join_extras(user_extra(request), {"time taken": time.time() - start_time}))
@@ -94,8 +92,7 @@ def mutation_table(request):
 
 
 def _get_table_body(experiment, ordered_reseq_dict, user, filter_type=None,
-                    skip_global_filter=False, skip_experiment_filter=False):
+                    skip_experiment_filter=False):
     obs_mutations = get_all_observed_mutations_filtered(experiment.ale_id, filter_type,
-                                                        skip_global_filter=skip_global_filter,
                                                         skip_experiment_filter=skip_experiment_filter)
     return mutation_table_builder.get_mutation_table_body(user, obs_mutations, ordered_reseq_dict, experiment)

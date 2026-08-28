@@ -82,20 +82,22 @@ class CompareTestCase(TestCase):
         self.assertIn(PAGE, html)
         self.assertIn("all samples", html)
 
-    def test_it_owns_the_show_filtered_checkboxes(self):
-        """base_table_template.html renders them only for a page that sets
-        show_filter_toggles -- this one. Fixation, Converge and Search do not."""
+    def test_it_owns_the_show_filtered_checkbox(self):
+        """base_table_template.html renders it only for a page that sets
+        show_filter_toggles -- this one. Fixation, Converge and Search do not.
+
+        There were two of these until the site-wide filter was removed; the surviving one
+        reveals what the experiment's own filter hides, for this reader and this request."""
         html = self._get().content.decode()
 
-        self.assertIn('name="show_global_filtered"', html)
         self.assertIn('name="show_exp_filtered"', html)
+        self.assertNotIn('name="show_global_filtered"', html)
 
     def test_the_other_tables_do_not_render_them(self):
         html = self.client.get(
             "/fixation", {"ale_experiment_id": self.experiment.ale_id}
         ).content.decode()
 
-        self.assertNotIn('name="show_global_filtered"', html)
         self.assertNotIn('name="show_exp_filtered"', html)
 
     def test_the_shared_table_actions_are_reversed_not_hardcoded(self):
