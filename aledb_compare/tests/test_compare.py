@@ -82,23 +82,32 @@ class CompareTestCase(TestCase):
         self.assertIn(PAGE, html)
         self.assertIn("all samples", html)
 
-    def test_it_owns_the_show_filtered_checkbox(self):
-        """base_table_template.html renders it only for a page that sets
-        show_filter_toggles -- this one. Fixation, Converge and Search do not.
+    def test_it_renders_the_readers_own_filter_controls(self):
+        """Two tests stood here: one that this page owned a `Show Experiment Filtered`
+        checkbox, and one that Fixation and Converge did *not* render it -- it was gated on a
+        flag only this view set, because it had rendered inert on the pages that never read it
+        back.
 
-        There were two of these until the site-wide filter was removed; the surviving one
-        reveals what the experiment's own filter hides, for this reader and this request."""
+        Both are gone with the checkbox. It offered to see through the *shared* filter, which
+        is not a question a reader has about their own, and the controls gate themselves on
+        having an experiment rather than on a flag each page must remember. So the assertion
+        inverts: every page sharing this template gets working controls."""
         html = self._get().content.decode()
 
-        self.assertIn('name="show_exp_filtered"', html)
+        self.assertIn('name="min_freq"', html)
+        self.assertIn('name="ignore_genes"', html)
+        self.assertNotIn('name="show_exp_filtered"', html)
         self.assertNotIn('name="show_global_filtered"', html)
 
-    def test_the_other_tables_do_not_render_them(self):
+    def test_the_other_tables_render_them_too(self):
+        # follow=True: /fixation is an APPEND_SLASH redirect, and an unfollowed GET returns
+        # an empty body -- which is why the assertNotIn this replaced passed without ever
+        # looking at the page.
         html = self.client.get(
-            "/fixation", {"ale_experiment_id": self.experiment.ale_id}
+            "/fixation", {"ale_experiment_id": self.experiment.ale_id}, follow=True
         ).content.decode()
 
-        self.assertNotIn('name="show_exp_filtered"', html)
+        self.assertIn('name="min_freq"', html)
 
     def test_the_shared_table_actions_are_reversed_not_hardcoded(self):
         """table_template.js reverses the tag endpoints by name. If it went back to

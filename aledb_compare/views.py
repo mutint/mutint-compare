@@ -23,6 +23,7 @@ from aledb_common.logger import join_extras, user_extra
 from aledb_common.util import get_user_context
 from aledb_experiment import models
 from aledb_seq.util import get_all_observed_mutations_filtered, get_reseq_ordered_dict
+from aledb_filter.view_filter import get_view_filter
 from aledb_seq.views import mutation_table_builder
 
 logger = logging.getLogger(__name__)
@@ -44,14 +45,17 @@ def mutation_table(request):
 
         table_header = mutation_table_builder.get_table_header(request.user, ordered_reseq_dict, experiment)
 
-        show_exp_filtered = request.GET.get('show_exp_filtered', '') == '1'
+        # The reader's own filter, from their session. This was `show_exp_filtered`, a
+        # checkbox offering to see through the *shared* experiment filter -- a question that
+        # stops meaning anything once the filter is yours and clearing it is a click away.
+        view_filter = get_view_filter(request, experiment.ale_id)
 
         # No filter_type: every mutation type renders here, AMP included. This used to pass
         # filter_type="AMP", which -- the value naming is inverted, it means *exclude* --
         # kept AMP rows out, and /mutations/amplifications was the only place they appeared.
         # That page is gone, so excluding them here would hide them entirely.
         table_body = _get_table_body(experiment, ordered_reseq_dict, request.user,
-                                     skip_experiment_filter=show_exp_filtered)
+                                     view_filter=view_filter)
 
         hidden_columns = request.GET.get('hidden_columns', "")
 
@@ -71,12 +75,11 @@ def mutation_table(request):
                         "hidden_columns": hidden_columns,
                         "refseq_column": REFSEQ_COLUMN_IN_MUT_TABLE,
                         "tag_dropdown": aledb_common.constants.TAGS,
-                        # The two "show filtered" checkboxes are Compare's alone -- no other
-                        # page that renders base_table_template.html populates them. This flag
-                        # is what keeps them off Fixation, Converge and Search, where they
-                        # used to render permanently inert.
-                        "show_filter_toggles": True,
-                        "show_exp_filtered": show_exp_filtered,
+                        # `show_filter_toggles` and `show_exp_filtered` stood here. The first
+                        # was a capability gate keeping a checkbox only this page honoured off
+                        # the three others sharing the template; the filter controls gate
+                        # themselves on having an experiment now, so every page that renders
+                        # this template gets working ones.
                         })
         logger.info("mutation performance", extra=join_extras(user_extra(request), {"time taken": time.time() - start_time}))
 
@@ -92,7 +95,7 @@ def mutation_table(request):
 
 
 def _get_table_body(experiment, ordered_reseq_dict, user, filter_type=None,
-                    skip_experiment_filter=False):
-    obs_mutations = get_all_observed_mutations_filtered(experiment.ale_id, filter_type,
-                                                        skip_experiment_filter=skip_experiment_filter)
+                    view_filter=None):
+    obs_mutations = get_all_observed_mutations_filtered(
+        experiment.ale_id, filter_type=filter_type, view_filter=view_filter)
     return mutation_table_builder.get_mutation_table_body(user, obs_mutations, ordered_reseq_dict, experiment)
