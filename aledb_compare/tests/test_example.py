@@ -44,7 +44,10 @@ class ExampleDatasetTestCase(TestCase):
             tech_rep__isolate__flask__ale_id__ale_experiment=self.experiment)
 
         self.assertEqual(6, samples.count())
-        self.assertEqual({(1, 100), (1, 200), (1, 300), (2, 100), (2, 200), (2, 300)},
+        # The ALE is text and the flask a number -- `aledb_experiment.0008`, which is also
+        # why a lineage can be called `Ara-1` rather than 1.
+        self.assertEqual({("1", 100), ("1", 200), ("1", 300),
+                          ("2", 100), ("2", 200), ("2", 300)},
                          {(s.ale_id, s.flask_number) for s in samples})
 
     def test_one_sample_is_a_population(self):
@@ -57,7 +60,7 @@ class ExampleDatasetTestCase(TestCase):
             tech_rep__isolate__is_population=True)
 
         self.assertEqual(1, populations.count())
-        self.assertEqual((1, 300),
+        self.assertEqual(("1", 300),
                          (populations.first().ale_id, populations.first().flask_number))
 
     def test_the_pattern_spans_full_partial_and_single_rows(self):
