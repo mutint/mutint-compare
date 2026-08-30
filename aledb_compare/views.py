@@ -39,7 +39,7 @@ def mutation_table(request):
         exp_name = experiment.name
         ale_no = aledb_seq.views.common.get_ale_id(request)
         sample_type = aledb_seq.views.common.get_sample_type(request)
-        aleid_ale_id_list = aledb_seq.views.common.get_aleid_ale_id_list(experiment.ale_id, True)
+        aleid_ale_id_list = aledb_seq.views.common.get_aleid_ale_id_list(experiment.ale_id)
 
         ordered_reseq_dict = get_reseq_ordered_dict(experiment.ale_id, ale_no, sample_type, request)
 
