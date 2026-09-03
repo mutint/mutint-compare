@@ -91,7 +91,7 @@ class ExamplePageTestCase(TestCase):
 
     def _html(self):
         return self.client.get("/compare/",
-                               {"ale_experiment_id": self.experiment.ale_id}).content.decode()
+                               {"ale_experiment_id": self.experiment.id}).content.decode()
 
     def test_every_sample_is_a_column(self):
         html = self._html()

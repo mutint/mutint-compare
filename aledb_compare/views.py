@@ -39,16 +39,16 @@ def mutation_table(request):
         exp_name = experiment.name
         ale_no = aledb_seq.views.common.get_ale_id(request)
         sample_type = aledb_seq.views.common.get_sample_type(request)
-        aleid_ale_id_list = aledb_seq.views.common.get_aleid_ale_id_list(experiment.ale_id)
+        aleid_ale_id_list = aledb_seq.views.common.get_aleid_ale_id_list(experiment.id)
 
-        ordered_reseq_dict = get_reseq_ordered_dict(experiment.ale_id, ale_no, sample_type, request)
+        ordered_reseq_dict = get_reseq_ordered_dict(experiment.id, ale_no, sample_type, request)
 
         table_header = mutation_table_builder.get_table_header(request.user, ordered_reseq_dict, experiment)
 
         # The reader's own filter, from their session. This was `show_exp_filtered`, a
         # checkbox offering to see through the *shared* experiment filter -- a question that
         # stops meaning anything once the filter is yours and clearing it is a click away.
-        view_filter = get_view_filter(request, experiment.ale_id)
+        view_filter = get_view_filter(request, experiment.id)
 
         # No filter_type: every mutation type renders here, AMP included. This used to pass
         # filter_type="AMP", which -- the value naming is inverted, it means *exclude* --
@@ -65,7 +65,7 @@ def mutation_table(request):
                         "ale_experiment_name": exp_name,
                         "ale_no": ale_no,
                         "sample_type": sample_type,
-                        "ale_experiment_id": experiment.ale_id,
+                        "ale_experiment_id": experiment.id,
                         "ale_project_name": experiment.project.name,
                         "ale_project_id": experiment.project.id,
                         "table_body": mark_safe(json.dumps(table_body, cls=DjangoJSONEncoder)),
@@ -97,5 +97,5 @@ def mutation_table(request):
 def _get_table_body(experiment, ordered_reseq_dict, user, filter_type=None,
                     view_filter=None):
     obs_mutations = get_all_observed_mutations_filtered(
-        experiment.ale_id, filter_type=filter_type, view_filter=view_filter)
+        experiment.id, filter_type=filter_type, view_filter=view_filter)
     return mutation_table_builder.get_mutation_table_body(user, obs_mutations, ordered_reseq_dict, experiment)

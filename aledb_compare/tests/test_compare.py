@@ -27,7 +27,7 @@ class CompareTestCase(TestCase):
         self.experiment = AleExperiment.objects.get(pk=created["experiment_id"])
 
         from aledb_import.gd_import import prepare_experiment_by_id
-        context = prepare_experiment_by_id(self.experiment.ale_id)
+        context = prepare_experiment_by_id(self.experiment.id)
         ale = AleId.objects.create(ale_experiment=self.experiment, ale_id=1)
         flask = Flask.objects.create(ale_id=ale, flask_number=30000, media=context["media"])
         isolate = Isolate.objects.create(flask=flask, isolate_number=1, is_population=False)
@@ -45,7 +45,7 @@ class CompareTestCase(TestCase):
             present=True, frequency=0.5)
 
     def _get(self, **params):
-        params.setdefault("ale_experiment_id", self.experiment.ale_id)
+        params.setdefault("ale_experiment_id", self.experiment.id)
         return self.client.get(PAGE, params)
 
     def test_the_page_renders_the_experiment(self):
@@ -75,7 +75,7 @@ class CompareTestCase(TestCase):
         """Core renders that link only when this route resolves, so with the plugin
         installed it must be present."""
         html = self.client.get(
-            "/mutations/breseq", {"ale_experiment_id": self.experiment.ale_id}
+            "/mutations/breseq", {"ale_experiment_id": self.experiment.id}
         ).content.decode()
 
         self.assertIn(PAGE, html)
@@ -103,7 +103,7 @@ class CompareTestCase(TestCase):
         # an empty body -- which is why the assertNotIn this replaced passed without ever
         # looking at the page.
         html = self.client.get(
-            "/fixation", {"ale_experiment_id": self.experiment.ale_id}, follow=True
+            "/fixation", {"ale_experiment_id": self.experiment.id}, follow=True
         ).content.decode()
 
         self.assertIn('name="min_freq"', html)
