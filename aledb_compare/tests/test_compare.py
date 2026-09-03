@@ -30,8 +30,7 @@ class CompareTestCase(TestCase):
         context = prepare_experiment_by_id(self.experiment.ale_id)
         ale = AleId.objects.create(ale_experiment=self.experiment, ale_id=1)
         flask = Flask.objects.create(ale_id=ale, flask_number=30000, media=context["media"])
-        isolate = Isolate.objects.create(flask=flask, isolate_number=1, is_population=False,
-                                         freezer_box=context["freezer_box"])
+        isolate = Isolate.objects.create(flask=flask, isolate_number=1, is_population=False)
         tech_rep = TechnicalReplicate.objects.create(isolate=isolate, tech_rep_number=1)
         self.sample = ResequencingExperiment.objects.create(
             tech_rep=tech_rep, sample_name="1-30000-1-1")
