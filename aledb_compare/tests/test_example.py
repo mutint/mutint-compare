@@ -16,6 +16,7 @@ from django.test import TestCase
 
 from aledb_experiment.models import AleExperiment
 from aledb_seq.models import Mutation
+from aledb_experiment import paths
 
 DATASET = "aledb-compare-example"
 
@@ -41,7 +42,7 @@ class ExampleDatasetTestCase(TestCase):
         from aledb_seq.models import ResequencingExperiment
 
         samples = ResequencingExperiment.objects.filter(
-            tech_rep__isolate__flask__ale_id__ale_experiment=self.experiment)
+            **{paths.to_experiment(): self.experiment})
 
         self.assertEqual(6, samples.count())
         # The ALE is text and the flask a number -- `aledb_experiment.0008`, which is also
@@ -56,8 +57,8 @@ class ExampleDatasetTestCase(TestCase):
         from aledb_seq.models import ResequencingExperiment
 
         populations = ResequencingExperiment.objects.filter(
-            tech_rep__isolate__flask__ale_id__ale_experiment=self.experiment,
-            tech_rep__isolate__is_population=True)
+            **{paths.to_experiment(): self.experiment,
+               paths.to_isolate(field="is_population"): True})
 
         self.assertEqual(1, populations.count())
         self.assertEqual(("1", 300),
