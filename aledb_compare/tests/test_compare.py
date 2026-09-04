@@ -11,7 +11,7 @@ from django.test import TestCase
 from aledb_experiment.models import (
     Experiment, Population, TimePoint, Project,
 )
-from aledb_seq.models import Mutation, MutationCall, Sample
+from aledb_sample.models import Mutation, MutationCall, Sample
 
 PAGE = "/compare/"
 

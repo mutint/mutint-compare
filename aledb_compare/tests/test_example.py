@@ -15,7 +15,7 @@ from django.core.management import call_command
 from django.test import TestCase
 
 from aledb_experiment.models import Experiment
-from aledb_seq.models import Mutation
+from aledb_sample.models import Mutation
 from aledb_experiment import paths
 
 DATASET = "aledb-compare-example"
@@ -39,7 +39,7 @@ class ExampleDatasetTestCase(TestCase):
         self.assertEqual({"SNP", "SUB", "INS", "DEL", "MOB", "AMP"}, types)
 
     def test_the_grid_is_two_lineages_by_three_flasks(self):
-        from aledb_seq.models import Sample
+        from aledb_sample.models import Sample
 
         samples = Sample.objects.filter(
             **{paths.to_experiment(): self.experiment})
@@ -54,7 +54,7 @@ class ExampleDatasetTestCase(TestCase):
     def test_one_sample_is_a_population(self):
         """Its cells show a frequency where the clonal ones show a check -- the difference
         the cell rendering exists to make."""
-        from aledb_seq.models import Sample
+        from aledb_sample.models import Sample
 
         populations = Sample.objects.filter(
             **{paths.to_experiment(): self.experiment,
@@ -66,7 +66,7 @@ class ExampleDatasetTestCase(TestCase):
 
     def test_the_pattern_spans_full_partial_and_single_rows(self):
         """A table where every row looks the same demonstrates nothing."""
-        from aledb_seq.models import MutationCall
+        from aledb_sample.models import MutationCall
 
         spread = {}
         for mutation in Mutation.objects.filter(experiment=self.experiment):

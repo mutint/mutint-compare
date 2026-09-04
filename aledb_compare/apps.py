@@ -6,7 +6,7 @@ from django.apps import AppConfig
 class CompareConfig(AppConfig):
     """The cross-sample mutation table.
 
-    Compare lived in aledb-core as `aledb_seq.views.mutations.mutation_table` until it was
+    Compare lived in aledb-core as `aledb_sample.views.mutations.mutation_table` until it was
     pulled out here. It never belonged there: it is one way of *looking* at an experiment's
     mutations, the same kind of thing aledb-fixation and aledb-converge are, and a deployment
     may reasonably want it gone or want its own in its place. Core keeps everything Compare is
