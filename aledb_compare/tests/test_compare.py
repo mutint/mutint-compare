@@ -31,7 +31,7 @@ class CompareTestCase(TestCase):
         ale = Population.objects.create(experiment=self.experiment, name=1)
         flask = TimePoint.objects.create(population=ale, value=30000, media=context["media"])
         self.sample = Sample.objects.create(
-            time_point=flask, name="1-1", is_population=False,
+            time_point=flask, name="1-1", is_clonal=True,
             source_name="1-30000-1-1")
         # `gene` must not be null: the builder hands it to aledb_common.util.get_gene_list,
         # which splits it unguarded. The column is nullable, so that is a trap rather than

@@ -58,7 +58,7 @@ class ExampleDatasetTestCase(TestCase):
 
         populations = Sample.objects.filter(
             **{paths.to_experiment(): self.experiment,
-               paths.to_sample(field="is_population"): True})
+               **paths.mixed_filter()})
 
         self.assertEqual(1, populations.count())
         self.assertEqual(("1", 300),
