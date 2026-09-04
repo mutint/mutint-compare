@@ -36,7 +36,7 @@ class CompareTestCase(TestCase):
         # which splits it unguarded. The column is nullable, so that is a trap rather than
         # a fixture detail -- but it is pre-existing and shared by every table page.
         self.mutation = Mutation.objects.create(
-            mutation_type="SNP", position=1000, sequence_change="A>T",
+            mutation_type="SNP", start_position=1000, sequence_change="A>T",
             gene="thrA", experiment=self.experiment)
         MutationCall.objects.create(
             sample=self.sample, mutation=self.mutation,
@@ -150,7 +150,7 @@ class CompareTestCase(TestCase):
         from aledb_mutation_editor.record_builder import build_call
 
         mutation = Mutation.objects.create(
-            mutation_type="SNP", position=position, sequence_change="C>G",
+            mutation_type="SNP", start_position=position, sequence_change="C>G",
             gene="ilvG", experiment=self.experiment)
         MutationCall.objects.create(
             sample=self.sample, mutation=mutation,

@@ -70,7 +70,7 @@ class ExampleDatasetTestCase(TestCase):
 
         spread = {}
         for mutation in Mutation.objects.filter(experiment=self.experiment):
-            spread[(mutation.mutation_type, mutation.position)] = (
+            spread[(mutation.mutation_type, mutation.start_position)] = (
                 MutationCall.objects.filter(mutation=mutation).count())
 
         self.assertEqual(6, spread[("SNP", 150)], "present in every sample")
