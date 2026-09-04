@@ -34,14 +34,14 @@ def mutation_table(request):
     context = get_user_context(request.user)
     try:
         start_time = time.time()
-        experiment = aledb_seq.views.common.get_ale_experiment(request)
+        experiment = aledb_seq.views.common.get_experiment(request)
 
         exp_name = experiment.name
-        ale_no = aledb_seq.views.common.get_ale_id(request)
+        population = aledb_seq.views.common.get_population(request)
         sample_type = aledb_seq.views.common.get_sample_type(request)
-        aleid_ale_id_list = aledb_seq.views.common.get_aleid_ale_id_list(experiment.id)
+        aleid_ale_id_list = aledb_seq.views.common.get_population_names(experiment.id)
 
-        ordered_reseq_dict = get_reseq_ordered_dict(experiment.id, ale_no, sample_type, request)
+        ordered_reseq_dict = get_reseq_ordered_dict(experiment.id, population, sample_type, request)
 
         table_header = mutation_table_builder.get_table_header(request.user, ordered_reseq_dict, experiment)
 
@@ -62,10 +62,10 @@ def mutation_table(request):
         template = loader.get_template("base_table_template.html")
 
         context.update({"ales": aleid_ale_id_list,
-                        "ale_experiment_name": exp_name,
-                        "ale_no": ale_no,
+                        "experiment_name": exp_name,
+                        "population": population,
                         "sample_type": sample_type,
-                        "ale_experiment_id": experiment.id,
+                        "experiment_id": experiment.id,
                         "ale_project_name": experiment.project.name,
                         "ale_project_id": experiment.project.id,
                         "table_body": mark_safe(json.dumps(table_body, cls=DjangoJSONEncoder)),

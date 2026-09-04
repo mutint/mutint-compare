@@ -21,9 +21,9 @@ class CompareTestCase(TestCase):
         self.user = User.objects.create(username="owner", email="o@e.com", is_active=True)
         self.client.force_login(self.user)
         # Through the view: Project.objects.create leaves the owner without the guardian
-        # grant, and get_ale_experiment then refuses the page.
+        # grant, and get_experiment then refuses the page.
         created = self.client.post(
-            "/ale/projects/create/", {"name": "P", "experiment": "E"}).json()
+            "/project/create/", {"name": "P", "experiment": "E"}).json()
         self.experiment = Experiment.objects.get(pk=created["experiment_id"])
 
         from aledb_import.gd_import import prepare_experiment_by_id
@@ -44,7 +44,7 @@ class CompareTestCase(TestCase):
             present=True, frequency=0.5)
 
     def _get(self, **params):
-        params.setdefault("ale_experiment_id", self.experiment.id)
+        params.setdefault("experiment_id", self.experiment.id)
         return self.client.get(PAGE, params)
 
     def test_the_page_renders_the_experiment(self):
@@ -74,7 +74,7 @@ class CompareTestCase(TestCase):
         """Core renders that link only when this route resolves, so with the plugin
         installed it must be present."""
         html = self.client.get(
-            "/mutations/breseq", {"ale_experiment_id": self.experiment.id}
+            "/mutations/breseq", {"experiment_id": self.experiment.id}
         ).content.decode()
 
         self.assertIn(PAGE, html)
@@ -102,7 +102,7 @@ class CompareTestCase(TestCase):
         # an empty body -- which is why the assertNotIn this replaced passed without ever
         # looking at the page.
         html = self.client.get(
-            "/fixation", {"ale_experiment_id": self.experiment.id}, follow=True
+            "/fixation", {"experiment_id": self.experiment.id}, follow=True
         ).content.decode()
 
         self.assertIn('name="min_freq"', html)
