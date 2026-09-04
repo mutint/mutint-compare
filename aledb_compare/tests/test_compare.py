@@ -145,8 +145,7 @@ class CompareTestCase(TestCase):
     # and absent here -- which reads as the add having silently failed.
 
     def _add_by_hand(self, position=7777):
-        from decimal import Decimal
-
+        
         from aledb_mutation_editor.record_builder import build_call
 
         mutation = Mutation.objects.create(
@@ -154,7 +153,7 @@ class CompareTestCase(TestCase):
             gene="ilvG", experiment=self.experiment)
         MutationCall.objects.create(
             sample=self.sample, mutation=mutation,
-            **build_call(Decimal("1.0")))
+            **build_call(1.0))
         return mutation
 
     def test_a_hand_added_mutation_has_a_row_on_the_compare_page(self):
