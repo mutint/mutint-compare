@@ -9,9 +9,9 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 
 from aledb_experiment.models import (
-    AleExperiment, AleId, Flask, Project,
+    Experiment, Population, TimePoint, Project,
 )
-from aledb_seq.models import Mutation, ObservedMutation, ResequencingExperiment
+from aledb_seq.models import Mutation, ObservedMutation, Sample
 
 PAGE = "/compare/"
 
@@ -24,23 +24,23 @@ class CompareTestCase(TestCase):
         # grant, and get_ale_experiment then refuses the page.
         created = self.client.post(
             "/ale/projects/create/", {"name": "P", "experiment": "E"}).json()
-        self.experiment = AleExperiment.objects.get(pk=created["experiment_id"])
+        self.experiment = Experiment.objects.get(pk=created["experiment_id"])
 
         from aledb_import.gd_import import prepare_experiment_by_id
         context = prepare_experiment_by_id(self.experiment.id)
-        ale = AleId.objects.create(ale_experiment=self.experiment, ale_id=1)
-        flask = Flask.objects.create(ale_id=ale, flask_number=30000, media=context["media"])
-        self.sample = ResequencingExperiment.objects.create(
-            flask=flask, isolate_number="1-1", is_population=False,
-            sample_name="1-30000-1-1")
+        ale = Population.objects.create(experiment=self.experiment, name=1)
+        flask = TimePoint.objects.create(population=ale, value=30000, media=context["media"])
+        self.sample = Sample.objects.create(
+            time_point=flask, name="1-1", is_population=False,
+            source_name="1-30000-1-1")
         # `gene` must not be null: the builder hands it to aledb_common.util.get_gene_list,
         # which splits it unguarded. The column is nullable, so that is a trap rather than
         # a fixture detail -- but it is pre-existing and shared by every table page.
         self.mutation = Mutation.objects.create(
             mutation_type="SNP", position=1000, sequence_change="A>T",
-            gene="thrA", ale_experiment=self.experiment)
+            gene="thrA", experiment=self.experiment)
         ObservedMutation.objects.create(
-            sequencing_experiment=self.sample, mutation=self.mutation,
+            sample=self.sample, mutation=self.mutation,
             present=True, frequency=0.5)
 
     def _get(self, **params):
@@ -152,9 +152,9 @@ class CompareTestCase(TestCase):
 
         mutation = Mutation.objects.create(
             mutation_type="SNP", position=position, sequence_change="C>G",
-            gene="ilvG", ale_experiment=self.experiment)
+            gene="ilvG", experiment=self.experiment)
         ObservedMutation.objects.create(
-            sequencing_experiment=self.sample, mutation=mutation,
+            sample=self.sample, mutation=mutation,
             **build_observation(Decimal("1.0")))
         return mutation
 

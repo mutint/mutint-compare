@@ -14,7 +14,7 @@ from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.test import TestCase
 
-from aledb_experiment.models import AleExperiment
+from aledb_experiment.models import Experiment
 from aledb_seq.models import Mutation
 from aledb_experiment import paths
 
@@ -27,21 +27,21 @@ class ExampleDatasetTestCase(TestCase):
         User.objects.create(username="admin", email="a@e.com",
                             is_active=True, is_superuser=True)
         call_command("load_example", DATASET, stdout=StringIO(), stderr=StringIO())
-        cls.experiment = AleExperiment.objects.get(name=DATASET)
+        cls.experiment = Experiment.objects.get(name=DATASET)
 
     def test_it_covers_six_mutation_types(self):
         """Compare is the only page that renders them all. /mutations/amplifications was
         once the only place AMP appeared, because Compare passed a `filter_type` whose
         value means *exclude*; the AMP row is what stops that returning unnoticed."""
-        types = set(Mutation.objects.filter(ale_experiment=self.experiment)
+        types = set(Mutation.objects.filter(experiment=self.experiment)
                     .values_list("mutation_type", flat=True))
 
         self.assertEqual({"SNP", "SUB", "INS", "DEL", "MOB", "AMP"}, types)
 
     def test_the_grid_is_two_lineages_by_three_flasks(self):
-        from aledb_seq.models import ResequencingExperiment
+        from aledb_seq.models import Sample
 
-        samples = ResequencingExperiment.objects.filter(
+        samples = Sample.objects.filter(
             **{paths.to_experiment(): self.experiment})
 
         self.assertEqual(6, samples.count())
@@ -49,27 +49,27 @@ class ExampleDatasetTestCase(TestCase):
         # why a lineage can be called `Ara-1` rather than 1.
         self.assertEqual({("1", 100), ("1", 200), ("1", 300),
                           ("2", 100), ("2", 200), ("2", 300)},
-                         {(s.ale_id, s.flask_number) for s in samples})
+                         {(s.population_name, s.time_point_value) for s in samples})
 
     def test_one_sample_is_a_population(self):
         """Its cells show a frequency where the clonal ones show a check -- the difference
         the cell rendering exists to make."""
-        from aledb_seq.models import ResequencingExperiment
+        from aledb_seq.models import Sample
 
-        populations = ResequencingExperiment.objects.filter(
+        populations = Sample.objects.filter(
             **{paths.to_experiment(): self.experiment,
                paths.to_sample(field="is_population"): True})
 
         self.assertEqual(1, populations.count())
         self.assertEqual(("1", 300),
-                         (populations.first().ale_id, populations.first().flask_number))
+                         (populations.first().population_name, populations.first().time_point_value))
 
     def test_the_pattern_spans_full_partial_and_single_rows(self):
         """A table where every row looks the same demonstrates nothing."""
         from aledb_seq.models import ObservedMutation
 
         spread = {}
-        for mutation in Mutation.objects.filter(ale_experiment=self.experiment):
+        for mutation in Mutation.objects.filter(experiment=self.experiment):
             spread[(mutation.mutation_type, mutation.position)] = (
                 ObservedMutation.objects.filter(mutation=mutation).count())
 
@@ -85,7 +85,7 @@ class ExamplePageTestCase(TestCase):
         cls.owner = User.objects.create(username="admin", email="a@e.com",
                                         is_active=True, is_superuser=True)
         call_command("load_example", DATASET, stdout=StringIO(), stderr=StringIO())
-        cls.experiment = AleExperiment.objects.get(name=DATASET)
+        cls.experiment = Experiment.objects.get(name=DATASET)
 
     def setUp(self):
         self.client.force_login(self.owner)

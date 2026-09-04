@@ -84,7 +84,7 @@ def mutation_table(request):
         logger.info("mutation performance", extra=join_extras(user_extra(request), {"time taken": time.time() - start_time}))
 
         return HttpResponse(template.render(context, request), content_type="text/html")
-    except models.AleExperiment.DoesNotExist:
+    except models.Experiment.DoesNotExist:
         return aledb_seq.views.common.no_experiment_selected(
             request, context, logger, "mutation table")
     except Exception as e:
