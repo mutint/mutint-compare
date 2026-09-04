@@ -49,7 +49,7 @@ class ExampleDatasetTestCase(TestCase):
         # why a lineage can be called `Ara-1` rather than 1.
         self.assertEqual({("1", 100), ("1", 200), ("1", 300),
                           ("2", 100), ("2", 200), ("2", 300)},
-                         {(s.population_name, s.time_point_value) for s in samples})
+                         {(s.population_name, s.time_point) for s in samples})
 
     def test_one_sample_is_a_population(self):
         """Its cells show a frequency where the clonal ones show a check -- the difference
@@ -62,7 +62,7 @@ class ExampleDatasetTestCase(TestCase):
 
         self.assertEqual(1, populations.count())
         self.assertEqual(("1", 300),
-                         (populations.first().population_name, populations.first().time_point_value))
+                         (populations.first().population_name, populations.first().time_point))
 
     def test_the_pattern_spans_full_partial_and_single_rows(self):
         """A table where every row looks the same demonstrates nothing."""

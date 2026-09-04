@@ -9,7 +9,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 
 from aledb_experiment.models import (
-    Experiment, Population, TimePoint, Project,
+    Experiment, Population, Project,
 )
 from aledb_sample.models import Mutation, MutationCall, Sample
 
@@ -29,9 +29,8 @@ class CompareTestCase(TestCase):
         from aledb_import.gd_import import prepare_experiment_by_id
         context = prepare_experiment_by_id(self.experiment.id)
         ale = Population.objects.create(experiment=self.experiment, name=1)
-        flask = TimePoint.objects.create(population=ale, value=30000, media=context["media"])
         self.sample = Sample.objects.create(
-            time_point=flask, name="1-1", is_clonal=True,
+            population=ale, time_point=30000, name="1-1", is_clonal=True,
             source_name="1-30000-1-1")
         # `gene` must not be null: the builder hands it to aledb_common.util.get_gene_list,
         # which splits it unguarded. The column is nullable, so that is a trap rather than
