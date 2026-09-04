@@ -53,9 +53,9 @@ class CompareTestCase(TestCase):
         self.assertEqual(200, response.status_code)
         html = response.content.decode()
         self.assertIn("Compare", html)
-        # The column is labelled by ale_flask_isolate_str, which prefers the isolate
+        # The column is labelled by label, which prefers the isolate
         # description and falls back to the coordinate -- not by sample_name.
-        self.assertIn("A1 F30000 I1-1", html)
+        self.assertIn("1 / 30000 / 1-1", html)
 
     def test_it_is_reachable_by_name(self):
         """The nav entry and breseq_table's link both reverse 'compare' rather than
@@ -136,7 +136,7 @@ class CompareTestCase(TestCase):
 
         html = self._get().content.decode()
 
-        self.assertNotIn("A1 F30000 I1-1", html)
+        self.assertNotIn("1 / 30000 / 1-1", html)
 
     # --- a mutation nobody called ---------------------------------------------------------
     #

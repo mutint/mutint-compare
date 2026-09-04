@@ -99,12 +99,12 @@ class ExamplePageTestCase(TestCase):
         for ale in (1, 2):
             for flask in (100, 200, 300):
                 with self.subTest(ale=ale, flask=flask):
-                    self.assertIn("A%d F%d I1-1" % (ale, flask), html)
+                    self.assertIn("%d / %d / 1-1" % (ale, flask), html)
 
     def test_the_population_sample_is_a_column(self):
         """Compare passes all four arguments to get_reseq_ordered_dict, unlike the two
         plugin pages that used to drop population samples."""
-        self.assertIn("A1 F300 I1-1", self._html())
+        self.assertIn("1 / 300 / 1-1", self._html())
 
     def test_the_amplification_reaches_the_table(self):
         """AMP is a first-class breseq type and this is the only page that shows it."""
