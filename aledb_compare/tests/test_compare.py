@@ -11,7 +11,7 @@ from django.test import TestCase
 from aledb_experiment.models import (
     Experiment, Population, TimePoint, Project,
 )
-from aledb_seq.models import Mutation, ObservedMutation, Sample
+from aledb_seq.models import Mutation, MutationCall, Sample
 
 PAGE = "/compare/"
 
@@ -39,7 +39,7 @@ class CompareTestCase(TestCase):
         self.mutation = Mutation.objects.create(
             mutation_type="SNP", position=1000, sequence_change="A>T",
             gene="thrA", experiment=self.experiment)
-        ObservedMutation.objects.create(
+        MutationCall.objects.create(
             sample=self.sample, mutation=self.mutation,
             present=True, frequency=0.5)
 
@@ -148,14 +148,14 @@ class CompareTestCase(TestCase):
     def _add_by_hand(self, position=7777):
         from decimal import Decimal
 
-        from aledb_mutation_editor.record_builder import build_observation
+        from aledb_mutation_editor.record_builder import build_call
 
         mutation = Mutation.objects.create(
             mutation_type="SNP", position=position, sequence_change="C>G",
             gene="ilvG", experiment=self.experiment)
-        ObservedMutation.objects.create(
+        MutationCall.objects.create(
             sample=self.sample, mutation=mutation,
-            **build_observation(Decimal("1.0")))
+            **build_call(Decimal("1.0")))
         return mutation
 
     def test_a_hand_added_mutation_has_a_row_on_the_compare_page(self):

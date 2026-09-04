@@ -66,12 +66,12 @@ class ExampleDatasetTestCase(TestCase):
 
     def test_the_pattern_spans_full_partial_and_single_rows(self):
         """A table where every row looks the same demonstrates nothing."""
-        from aledb_seq.models import ObservedMutation
+        from aledb_seq.models import MutationCall
 
         spread = {}
         for mutation in Mutation.objects.filter(experiment=self.experiment):
             spread[(mutation.mutation_type, mutation.position)] = (
-                ObservedMutation.objects.filter(mutation=mutation).count())
+                MutationCall.objects.filter(mutation=mutation).count())
 
         self.assertEqual(6, spread[("SNP", 150)], "present in every sample")
         self.assertEqual(3, spread[("DEL", 1450)], "one lineage, all its flasks")

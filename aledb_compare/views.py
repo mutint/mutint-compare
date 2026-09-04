@@ -22,7 +22,7 @@ from aledb_common.constants import REFSEQ_COLUMN_IN_MUT_TABLE
 from aledb_common.logger import join_extras, user_extra
 from aledb_common.util import get_user_context
 from aledb_experiment import models
-from aledb_seq.util import get_all_observed_mutations_filtered, get_reseq_ordered_dict
+from aledb_seq.util import get_all_calls_filtered, get_reseq_ordered_dict
 from aledb_filter.view_filter import get_view_filter
 from aledb_seq.views import mutation_table_builder
 
@@ -96,6 +96,6 @@ def mutation_table(request):
 
 def _get_table_body(experiment, ordered_reseq_dict, user, filter_type=None,
                     view_filter=None):
-    obs_mutations = get_all_observed_mutations_filtered(
+    mutation_calls = get_all_calls_filtered(
         experiment.id, filter_type=filter_type, view_filter=view_filter)
-    return mutation_table_builder.get_mutation_table_body(user, obs_mutations, ordered_reseq_dict, experiment)
+    return mutation_table_builder.get_mutation_table_body(user, mutation_calls, ordered_reseq_dict, experiment)
