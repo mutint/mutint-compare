@@ -9,7 +9,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 
 from aledb_experiment.models import (
-    AleExperiment, AleId, Flask, Isolate, Project, TechnicalReplicate,
+    AleExperiment, AleId, Flask, Project,
 )
 from aledb_seq.models import Mutation, ObservedMutation, ResequencingExperiment
 
@@ -30,10 +30,9 @@ class CompareTestCase(TestCase):
         context = prepare_experiment_by_id(self.experiment.id)
         ale = AleId.objects.create(ale_experiment=self.experiment, ale_id=1)
         flask = Flask.objects.create(ale_id=ale, flask_number=30000, media=context["media"])
-        isolate = Isolate.objects.create(flask=flask, isolate_number=1, is_population=False)
-        tech_rep = TechnicalReplicate.objects.create(isolate=isolate, tech_rep_number=1)
         self.sample = ResequencingExperiment.objects.create(
-            tech_rep=tech_rep, sample_name="1-30000-1-1")
+            flask=flask, isolate_number="1-1", is_population=False,
+            sample_name="1-30000-1-1")
         # `gene` must not be null: the builder hands it to aledb_common.util.get_gene_list,
         # which splits it unguarded. The column is nullable, so that is a trap rather than
         # a fixture detail -- but it is pre-existing and shared by every table page.
@@ -56,7 +55,7 @@ class CompareTestCase(TestCase):
         self.assertIn("Compare", html)
         # The column is labelled by ale_flask_isolate_str, which prefers the isolate
         # description and falls back to the coordinate -- not by sample_name.
-        self.assertIn("A1 F30000 I1 R1", html)
+        self.assertIn("A1 F30000 I1-1", html)
 
     def test_it_is_reachable_by_name(self):
         """The nav entry and breseq_table's link both reverse 'compare' rather than
@@ -137,7 +136,7 @@ class CompareTestCase(TestCase):
 
         html = self._get().content.decode()
 
-        self.assertNotIn("A1 F30000 I1 R1", html)
+        self.assertNotIn("A1 F30000 I1-1", html)
 
     # --- a mutation nobody called ---------------------------------------------------------
     #
