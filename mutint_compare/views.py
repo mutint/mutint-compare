@@ -1,8 +1,8 @@
 """The cross-sample mutation table.
 
-Moved out of aledb-core's `aledb_sample/views/mutations.py` unchanged. What stayed behind is
+Moved out of mutint-core's `mutint_sample/views/mutations.py` unchanged. What stayed behind is
 everything this is built from and everything it shares: `mutation_table_builder`, which
-Search, Export, aledb-fixation and aledb-converge all call; `base_table_template.html` and
+Search, Export, mutint-fixation and mutint-converge all call; `base_table_template.html` and
 `table_template.js`, which three other pages render; and the tag and filter endpoints those
 pages POST to. This module is the ~85 lines that were only ever Compare's.
 """
@@ -16,15 +16,15 @@ from django.http import HttpResponse
 from django.template import loader
 from django.utils.safestring import mark_safe
 
-import aledb_common.constants
-import aledb_sample.views.common
-from aledb_common.constants import REFSEQ_COLUMN_IN_MUT_TABLE
-from aledb_common.logger import join_extras, user_extra
-from aledb_common.util import get_user_context
-from aledb_experiment import models
-from aledb_sample.util import get_all_calls_filtered, get_reseq_ordered_dict
-from aledb_filter.view_filter import get_view_filter
-from aledb_sample.views import mutation_table_builder
+import mutint_common.constants
+import mutint_sample.views.common
+from mutint_common.constants import REFSEQ_COLUMN_IN_MUT_TABLE
+from mutint_common.logger import join_extras, user_extra
+from mutint_common.util import get_user_context
+from mutint_experiment import models
+from mutint_sample.util import get_all_calls_filtered, get_reseq_ordered_dict
+from mutint_filter.view_filter import get_view_filter
+from mutint_sample.views import mutation_table_builder
 
 logger = logging.getLogger(__name__)
 
@@ -34,12 +34,12 @@ def mutation_table(request):
     context = get_user_context(request.user)
     try:
         start_time = time.time()
-        experiment = aledb_sample.views.common.get_experiment(request)
+        experiment = mutint_sample.views.common.get_experiment(request)
 
         exp_name = experiment.name
-        population = aledb_sample.views.common.get_population(request)
-        sample_type = aledb_sample.views.common.get_sample_type(request)
-        aleid_ale_id_list = aledb_sample.views.common.get_population_names(experiment.id)
+        population = mutint_sample.views.common.get_population(request)
+        sample_type = mutint_sample.views.common.get_sample_type(request)
+        aleid_ale_id_list = mutint_sample.views.common.get_population_names(experiment.id)
 
         ordered_reseq_dict = get_reseq_ordered_dict(experiment.id, population, sample_type, request)
 
@@ -74,7 +74,7 @@ def mutation_table(request):
                         "template_header": "Compare",
                         "hidden_columns": hidden_columns,
                         "refseq_column": REFSEQ_COLUMN_IN_MUT_TABLE,
-                        "tag_dropdown": aledb_common.constants.TAGS,
+                        "tag_dropdown": mutint_common.constants.TAGS,
                         # `show_filter_toggles` and `show_exp_filtered` stood here. The first
                         # was a capability gate keeping a checkbox only this page honoured off
                         # the three others sharing the template; the filter controls gate
@@ -85,7 +85,7 @@ def mutation_table(request):
 
         return HttpResponse(template.render(context, request), content_type="text/html")
     except models.Experiment.DoesNotExist:
-        return aledb_sample.views.common.no_experiment_selected(
+        return mutint_sample.views.common.no_experiment_selected(
             request, context, logger, "mutation table")
     except Exception as e:
         logger.exception("mutations broke", extra=user_extra(request))

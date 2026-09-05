@@ -1,6 +1,6 @@
-# aledb-compare-example
+# mutint-compare-example
 
-Load with `./aledb load_example aledb-compare-example`.
+Load with `./mutint load_example mutint-compare-example`.
 
 Two ALE lineages sampled at three flasks each — a six-column grid — against the 6000 bp
 synthetic genome.

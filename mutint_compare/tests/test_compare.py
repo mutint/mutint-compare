@@ -1,17 +1,17 @@
 """The Compare page, now that it is a plugin.
 
-These can only run in an assembled project. aledb-core has no plugin discovery of any kind,
-so `./aledb test` cannot reach this file -- run it as `./mutint test aledb_compare`. That is
-already true of aledb-fixation and aledb-converge.
+These can only run in an assembled project. mutint-core has no plugin discovery of any kind,
+so `./mutint test` cannot reach this file -- run it as `./mutint test mutint_compare`. That is
+already true of mutint-fixation and mutint-converge.
 """
 
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-from aledb_experiment.models import (
+from mutint_experiment.models import (
     Experiment, Population, Project,
 )
-from aledb_sample.models import Mutation, MutationCall, Sample
+from mutint_sample.models import Mutation, MutationCall, Sample
 
 PAGE = "/compare/"
 
@@ -26,13 +26,13 @@ class CompareTestCase(TestCase):
             "/project/create/", {"name": "P", "experiment": "E"}).json()
         self.experiment = Experiment.objects.get(pk=created["experiment_id"])
 
-        from aledb_import.gd_import import prepare_experiment_by_id
+        from mutint_import.gd_import import prepare_experiment_by_id
         context = prepare_experiment_by_id(self.experiment.id)
         ale = Population.objects.create(experiment=self.experiment, name=1)
         self.sample = Sample.objects.create(
             population=ale, time_point=30000, name="1-1", is_clonal=True,
             source_name="1-30000-1-1")
-        # `gene` must not be null: the builder hands it to aledb_common.util.get_gene_list,
+        # `gene` must not be null: the builder hands it to mutint_common.util.get_gene_list,
         # which splits it unguarded. The column is nullable, so that is a trap rather than
         # a fixture detail -- but it is pre-existing and shared by every table page.
         self.mutation = Mutation.objects.create(
@@ -64,7 +64,7 @@ class CompareTestCase(TestCase):
         self.assertEqual(PAGE, reverse("compare"))
 
     def test_it_registers_a_nav_entry(self):
-        from aledb_common.nav_registry import EXPERIMENT_SECTION, get_nav_items
+        from mutint_common.nav_registry import EXPERIMENT_SECTION, get_nav_items
 
         labels = [item["label"] for item in get_nav_items(EXPERIMENT_SECTION)]
         self.assertIn("Compare", labels)
@@ -113,8 +113,8 @@ class CompareTestCase(TestCase):
 
         Two endpoints, not three. `add_to_exp_filter` was the third: it appended a mutation id
         to `AleExperimentFilter.ignored_mutations` so the row would stop being drawn -- a
-        delete that kept the row, per experiment and unattributed. aledb-core's
-        `aledb_mutation_editor` replaces it.
+        delete that kept the row, per experiment and unattributed. mutint-core's
+        `mutint_mutation_editor` replaces it.
         """
         html = self._get().content.decode()
 
@@ -146,7 +146,7 @@ class CompareTestCase(TestCase):
 
     def _add_by_hand(self, position=7777):
         
-        from aledb_mutation_editor.record_builder import build_call
+        from mutint_mutation_editor.record_builder import build_call
 
         mutation = Mutation.objects.create(
             mutation_type="SNP", start_position=position, sequence_change="C>G",

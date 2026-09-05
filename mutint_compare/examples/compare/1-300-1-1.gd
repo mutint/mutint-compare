@@ -1,6 +1,6 @@
 #=GENOME_DIFF	1.0
 #=TITLE	1-300-1-1
-#=AUTHOR	aledb example
+#=AUTHOR	mutint example
 #=CREATED	12:00:00 01 Jan 2020
 #=COMMAND	breseq -p -r synthetic.gbk -o 1-300-1-1 reads_R1.fastq reads_R2.fastq
 #=REFSEQ	synthetic.gbk

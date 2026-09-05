@@ -5,7 +5,7 @@ check. What is worth asserting is that the *pattern* survives into the page: a r
 in every sample, a row in one, every mutation type, and a population sample whose cells read
 as a frequency. `examples/compare/README.md` states the layout.
 
-Runs only in an assembled project: `./mutint test aledb_compare`.
+Runs only in an assembled project: `./mutint test mutint_compare`.
 """
 
 from io import StringIO
@@ -14,11 +14,11 @@ from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.test import TestCase
 
-from aledb_experiment.models import Experiment
-from aledb_sample.models import Mutation
-from aledb_experiment import paths
+from mutint_experiment.models import Experiment
+from mutint_sample.models import Mutation
+from mutint_experiment import paths
 
-DATASET = "aledb-compare-example"
+DATASET = "mutint-compare-example"
 
 
 class ExampleDatasetTestCase(TestCase):
@@ -39,13 +39,13 @@ class ExampleDatasetTestCase(TestCase):
         self.assertEqual({"SNP", "SUB", "INS", "DEL", "MOB", "AMP"}, types)
 
     def test_the_grid_is_two_lineages_by_three_flasks(self):
-        from aledb_sample.models import Sample
+        from mutint_sample.models import Sample
 
         samples = Sample.objects.filter(
             **{paths.to_experiment(): self.experiment})
 
         self.assertEqual(6, samples.count())
-        # The ALE is text and the flask a number -- `aledb_experiment.0008`, which is also
+        # The ALE is text and the flask a number -- `mutint_experiment.0008`, which is also
         # why a lineage can be called `Ara-1` rather than 1.
         self.assertEqual({("1", 100), ("1", 200), ("1", 300),
                           ("2", 100), ("2", 200), ("2", 300)},
@@ -54,7 +54,7 @@ class ExampleDatasetTestCase(TestCase):
     def test_one_sample_is_a_population(self):
         """Its cells show a frequency where the clonal ones show a check -- the difference
         the cell rendering exists to make."""
-        from aledb_sample.models import Sample
+        from mutint_sample.models import Sample
 
         populations = Sample.objects.filter(
             **{paths.to_experiment(): self.experiment,
@@ -66,7 +66,7 @@ class ExampleDatasetTestCase(TestCase):
 
     def test_the_pattern_spans_full_partial_and_single_rows(self):
         """A table where every row looks the same demonstrates nothing."""
-        from aledb_sample.models import MutationCall
+        from mutint_sample.models import MutationCall
 
         spread = {}
         for mutation in Mutation.objects.filter(experiment=self.experiment):

@@ -1,4 +1,4 @@
-# Install aledb-core dependencies first:
-#   pip install -r aledb-core/requirements.txt
+# Install mutint-core dependencies first:
+#   pip install -r mutint-core/requirements.txt
 #
-# aledb-compare-specific additions (if any):
+# mutint-compare-specific additions (if any):
