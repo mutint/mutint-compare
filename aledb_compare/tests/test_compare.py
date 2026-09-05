@@ -52,7 +52,7 @@ class CompareTestCase(TestCase):
         self.assertEqual(200, response.status_code)
         html = response.content.decode()
         self.assertIn("Compare", html)
-        # The column is labelled by label, which prefers the isolate
+        # The column is labeled by label, which prefers the isolate
         # description and falls back to the coordinate -- not by sample_name.
         self.assertIn("1 / 30000 / 1-1", html)
 
@@ -109,7 +109,7 @@ class CompareTestCase(TestCase):
     def test_the_shared_table_actions_are_reversed_not_hardcoded(self):
         """table_template.js reverses the tag endpoints by name. If it went back to
         literals, this page would still work and Search would silently break, so the
-        assertion is on the rendered URL rather than on behaviour.
+        assertion is on the rendered URL rather than on behavior.
 
         Two endpoints, not three. `add_to_exp_filter` was the third: it appended a mutation id
         to `AleExperimentFilter.ignored_mutations` so the row would stop being drawn -- a
