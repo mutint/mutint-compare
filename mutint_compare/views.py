@@ -1,30 +1,25 @@
-"""The cross-sample mutation table.
+"""The cross-sample mutation table: the experiment's mutations down, its samples across.
 
-Moved out of mutint-core's `mutint_sample/views/mutations.py` unchanged. What stayed behind is
-everything this is built from and everything it shares: `mutation_table_builder`, which
-Search, Export, mutint-fixation and mutint-converge all call; `base_table_template.html` and
-`table_template.js`, which three other pages render; and the tag and filter endpoints those
-pages POST to. This module is the ~85 lines that were only ever Compare's.
+The page is core's **mutation matrix** -- `mutint_sample.mutation_matrix.build_matrix` and
+`mutation_matrix/page.html` -- with this experiment's evolved calls as its rows. What is
+Compare's own is the ~30 lines below that choose the queryset: every call the experiment
+holds, through the reader's filter, every mutation type included. mutint-fixation and
+mutint-converge are the same page over a narrower queryset.
 """
 
-import json
 import logging
 import time
 
-from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse
 from django.template import loader
-from django.utils.safestring import mark_safe
 
-import mutint_common.constants
 import mutint_sample.views.common
-from mutint_common.constants import REFSEQ_COLUMN_IN_MUT_TABLE
 from mutint_common.logger import join_extras, user_extra
 from mutint_common.util import get_user_context
 from mutint_experiment import models
-from mutint_sample.util import get_all_calls_filtered, get_reseq_ordered_dict
 from mutint_filter.view_filter import get_view_filter
-from mutint_sample.views import mutation_table_builder
+from mutint_sample.mutation_matrix import build_matrix
+from mutint_sample.util import get_all_calls_filtered, get_reseq_ordered_dict
 
 logger = logging.getLogger(__name__)
 
@@ -35,55 +30,34 @@ def mutation_table(request):
     try:
         start_time = time.time()
         experiment = mutint_sample.views.common.get_experiment(request)
-
-        exp_name = experiment.name
         population = mutint_sample.views.common.get_population(request)
         sample_type = mutint_sample.views.common.get_sample_type(request)
-        aleid_ale_id_list = mutint_sample.views.common.get_population_names(experiment.id)
 
-        ordered_reseq_dict = get_reseq_ordered_dict(experiment.id, population, sample_type, request)
+        reseq_dict = get_reseq_ordered_dict(experiment.id, population, sample_type)
+        # The reader's own filter, from their session. No filter_type: every mutation type
+        # renders here, AMP included -- this is the one page that shows the whole experiment.
+        calls = get_all_calls_filtered(experiment.id,
+                                       view_filter=get_view_filter(request, experiment.id))
+        matrix = build_matrix(calls, reseq_dict, experiment=experiment,
+                              csv_title="%s_ExpID%d" % (experiment.name, experiment.id))
 
-        table_header = mutation_table_builder.get_table_header(request.user, ordered_reseq_dict, experiment)
-
-        # The reader's own filter, from their session. This was `show_exp_filtered`, a
-        # checkbox offering to see through the *shared* experiment filter -- a question that
-        # stops meaning anything once the filter is yours and clearing it is a click away.
-        view_filter = get_view_filter(request, experiment.id)
-
-        # No filter_type: every mutation type renders here, AMP included. This used to pass
-        # filter_type="AMP", which -- the value naming is inverted, it means *exclude* --
-        # kept AMP rows out, and /mutations/amplifications was the only place they appeared.
-        # That page is gone, so excluding them here would hide them entirely.
-        table_body = _get_table_body(experiment, ordered_reseq_dict, request.user,
-                                     view_filter=view_filter)
-
-        hidden_columns = request.GET.get('hidden_columns', "")
-
-        template = loader.get_template("base_table_template.html")
-
-        context.update({"ales": aleid_ale_id_list,
-                        "experiment_name": exp_name,
-                        "population": population,
-                        "sample_type": sample_type,
-                        "experiment_id": experiment.id,
-                        "ale_project_name": experiment.project.name,
-                        "ale_project_id": experiment.project.id,
-                        "table_body": mark_safe(json.dumps(table_body, cls=DjangoJSONEncoder)),
-                        "title": exp_name + " Mutations",
-                        "table_header": table_header,
-                        "template_header": "Compare",
-                        "hidden_columns": hidden_columns,
-                        "refseq_column": REFSEQ_COLUMN_IN_MUT_TABLE,
-                        "tag_dropdown": mutint_common.constants.TAGS,
-                        # `show_filter_toggles` and `show_exp_filtered` stood here. The first
-                        # was a capability gate keeping a checkbox only this page honoured off
-                        # the three others sharing the template; the filter controls gate
-                        # themselves on having an experiment now, so every page that renders
-                        # this template gets working ones.
-                        })
-        logger.info("mutation performance", extra=join_extras(user_extra(request), {"time taken": time.time() - start_time}))
-
-        return HttpResponse(template.render(context, request), content_type="text/html")
+        context.update({
+            "ales": mutint_sample.views.common.get_population_names(experiment.id),
+            "experiment_name": experiment.name,
+            "population": population,
+            "sample_type": sample_type,
+            "experiment_id": experiment.id,
+            "ale_project_name": experiment.project.name,
+            "ale_project_id": experiment.project.id,
+            "title": experiment.name + " Mutations",
+            "template_header": "Compare",
+            "matrix": matrix,
+            "empty_message": "No mutations to show for these samples and this filter.",
+        })
+        logger.info("mutation performance", extra=join_extras(
+            user_extra(request), {"time taken": time.time() - start_time}))
+        return HttpResponse(loader.get_template("mutation_matrix/page.html").render(context, request),
+                            content_type="text/html")
     except models.Experiment.DoesNotExist:
         return mutint_sample.views.common.no_experiment_selected(
             request, context, logger, "mutation table")
@@ -92,10 +66,3 @@ def mutation_table(request):
         template = loader.get_template("500.html")
         context['err_message'] = str(e)
         return HttpResponse(template.render(context, request), content_type="text/html")
-
-
-def _get_table_body(experiment, ordered_reseq_dict, user, filter_type=None,
-                    view_filter=None):
-    mutation_calls = get_all_calls_filtered(
-        experiment.id, filter_type=filter_type, view_filter=view_filter)
-    return mutation_table_builder.get_mutation_table_body(user, mutation_calls, ordered_reseq_dict, experiment)

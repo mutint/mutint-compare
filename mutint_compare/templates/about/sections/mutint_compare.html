@@ -3,6 +3,8 @@
     called in that sample. It is the view for asking which mutations recur across a population, as
     opposed to the per-sample <b>Mutations</b> page, which shows one sample's calls in breseq's
     own column order.</p>
-<p>It computes nothing and stores nothing. The rows come from mutint-core's mutation table
-    builder, the same one behind Search, Fixed Mutations and Converged Mutations, so a
-    deployment that removes this plugin loses the page and nothing else.</p>
+<p>It computes nothing and stores nothing. The table is mutint-core's mutation matrix, the
+    same one behind Search, Fixed Mutations and Converged Mutations: breseq's own columns for
+    each mutation, a frequency cell per sample, and two menus to choose which samples and which
+    columns show &mdash; choices that follow you from experiment to experiment. A deployment that
+    removes this plugin loses the page and nothing else.</p>

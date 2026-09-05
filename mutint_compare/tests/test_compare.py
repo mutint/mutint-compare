@@ -106,21 +106,24 @@ class CompareTestCase(TestCase):
 
         self.assertIn('name="min_freq"', html)
 
-    def test_the_shared_table_actions_are_reversed_not_hardcoded(self):
-        """table_template.js reverses the tag endpoints by name. If it went back to
-        literals, this page would still work and Search would silently break, so the
-        assertion is on the rendered URL rather than on behavior.
+    def test_the_table_is_the_mutation_matrix(self):
+        """Core's matrix, with this experiment's samples as columns and the two menus.
 
-        Two endpoints, not three. `add_to_exp_filter` was the third: it appended a mutation id
-        to `AleExperimentFilter.ignored_mutations` so the row would stop being drawn -- a
-        delete that kept the row, per experiment and unattributed. mutint-core's
-        `mutint_mutation_editor` replaces it.
+        Nothing of the old table survives here: no tag endpoints, no tag menus, no colvis
+        button. Tagging left Compare when the matrix arrived -- the page reads, the editor
+        writes.
         """
         html = self._get().content.decode()
 
-        self.assertIn("/mutation-table/toggle-mut-tag/", html)
-        self.assertIn("/mutation-table/toggle-rep-tag", html)
-        self.assertNotIn("/mutations/toggle-mut-tag", html)
+        self.assertIn("data-mutation-matrix", html)
+        self.assertIn('<th class="breseq-sample"', html)
+        self.assertIn("1 / 30000 / 1-1", html)
+        self.assertIn('data-role="columns"', html)
+        self.assertIn('data-role="samples"', html)
+        self.assertIn("mutation_matrix.js", html)
+        self.assertNotIn("toggle-mut-tag", html)
+        self.assertNotIn("toggle-rep-tag", html)
+        self.assertNotIn("fa-tags", html)
         self.assertNotIn("add_to_exp_filter", html)
 
     def test_no_experiment_selected_is_explained(self):
@@ -139,7 +142,7 @@ class CompareTestCase(TestCase):
 
     # --- a mutation nobody called ---------------------------------------------------------
     #
-    # Core covers `get_mutation_table_body` directly, but this is the table people actually
+    # Core covers `build_matrix` directly, but this is the table people actually
     # read an experiment from, and it is the reason the gap mattered: a mutation added
     # through /mutation-editor/add was stored, listed on the editor's own per-sample page,
     # and absent here -- which reads as the add having silently failed.
