@@ -159,12 +159,12 @@ class CompareTestCase(TestCase):
     #
     # Core covers `build_matrix` directly, but this is the table people actually
     # read an experiment from, and it is the reason the gap mattered: a mutation added
-    # through /mutation-editor/add was stored, listed on the editor's own per-sample page,
+    # through /curate/add was stored, listed on the editor's own per-sample page,
     # and absent here -- which reads as the add having silently failed.
 
     def _add_by_hand(self, position=7777):
         
-        from mutint_mutation_editor.record_builder import build_call
+        from mutint_curate.record_builder import build_call
 
         mutation = Mutation.objects.create(
             mutation_type="SNP", start_position=position, sequence_change="C>G",
