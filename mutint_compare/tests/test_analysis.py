@@ -12,7 +12,7 @@ from mutint_compare.analysis import Threshold, Thresholds, convergent_ids, fixed
 from mutint_experiment.models import Experiment, Population
 from mutint_filter.view_filter import ViewFilter
 from mutint_sample.models import Mutation, MutationCall, Sample
-from mutint_sample.util import get_all_calls_filtered, get_reseq_ordered_dict
+from mutint_sample.util import get_all_calls_filtered, get_ordered_sample_dict
 
 
 class ThresholdTestCase(TestCase):
@@ -77,13 +77,13 @@ class _Rules(TestCase):
 
     def setUp(self):
         self.experiment = Experiment.objects.create()
-        self.ales = {}
+        self.populations = {}
 
-    def sample(self, ale, time_point=1, name="1"):
-        population = self.ales.get(ale)
+    def sample(self, label, time_point=1, name="1"):
+        population = self.populations.get(label)
         if population is None:
-            population = self.ales[ale] = Population.objects.create(
-                name=ale, experiment=self.experiment)
+            population = self.populations[label] = Population.objects.create(
+                name=label, experiment=self.experiment)
         return Sample.objects.create(population=population, time_point=time_point,
                                      name=name, is_clonal=True)
 
@@ -99,15 +99,15 @@ class _Rules(TestCase):
     def inputs(self, view_filter=None):
         """What the view hands the analysis: the page's samples and its filtered calls."""
         return (get_all_calls_filtered(self.experiment.id, view_filter=view_filter),
-                get_reseq_ordered_dict(self.experiment.id))
+                get_ordered_sample_dict(self.experiment.id))
 
     def convergent(self, at_least="2", view_filter=None):
-        calls, reseq_dict = self.inputs(view_filter)
-        return convergent_ids(calls, reseq_dict, at_least=Threshold.parse(at_least))
+        calls, sample_dict = self.inputs(view_filter)
+        return convergent_ids(calls, sample_dict, at_least=Threshold.parse(at_least))
 
     def fixed(self, at_least="1", view_filter=None):
-        calls, reseq_dict = self.inputs(view_filter)
-        return fixed_ids(calls, reseq_dict, at_least=Threshold.parse(at_least))
+        calls, sample_dict = self.inputs(view_filter)
+        return fixed_ids(calls, sample_dict, at_least=Threshold.parse(at_least))
 
 
 class ConvergenceRuleTestCase(_Rules):

@@ -16,7 +16,7 @@ from django.test import TestCase
 from mutint_compare.analysis import convergent_ids, fixed_ids
 from mutint_experiment.models import Experiment, Population
 from mutint_sample.models import Mutation, MutationCall, Sample
-from mutint_sample.util import get_all_calls_filtered, get_reseq_ordered_dict
+from mutint_sample.util import get_all_calls_filtered, get_ordered_sample_dict
 
 
 class AncestorTestCase(TestCase):
@@ -50,8 +50,8 @@ class AncestorTestCase(TestCase):
 
     def sets(self):
         calls = get_all_calls_filtered(self.experiment.id)
-        reseq_dict = get_reseq_ordered_dict(self.experiment.id)
-        return convergent_ids(calls, reseq_dict), fixed_ids(calls, reseq_dict)
+        sample_dict = get_ordered_sample_dict(self.experiment.id)
+        return convergent_ids(calls, sample_dict), fixed_ids(calls, sample_dict)
 
 
 class TestWithoutADesignation(AncestorTestCase):

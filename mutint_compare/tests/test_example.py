@@ -102,7 +102,7 @@ class ExamplePageTestCase(TestCase):
                     self.assertIn("%d / %d / 1-1" % (ale, flask), html)
 
     def test_the_population_sample_is_a_column(self):
-        """Compare passes all four arguments to get_reseq_ordered_dict, unlike the two
+        """Compare passes all four arguments to get_ordered_sample_dict, unlike the two
         plugin pages that used to drop population samples."""
         self.assertIn("1 / 300 / 1-1", self._html())
 

@@ -21,7 +21,7 @@ filter can go. Fixation asks what is present at the last time point, so hiding a
 low-frequency call there changes the answer, and filtering the result afterwards would show
 one set of rows for a different claim. The old modules said the same thing.
 
-Populations and time points come from the samples the page selected (`reseq_dict`), not from
+Populations and time points come from the samples the page selected (`sample_dict`), not from
 the calls: a time point every call was filtered out of is still the last time point, and
 nothing fixed there.
 """
@@ -128,13 +128,13 @@ def get_thresholds(request, experiment_id):
     return Thresholds()
 
 
-def population_count(reseq_dict):
-    return len({sample.population_id for sample in reseq_dict.values()})
+def population_count(sample_dict):
+    return len({sample.population_id for sample in sample_dict.values()})
 
 
-def convergent_ids(calls, reseq_dict, *, at_least=DEFAULT_CONVERGENT):
+def convergent_ids(calls, sample_dict, *, at_least=DEFAULT_CONVERGENT):
     """The ids of the mutations whose gene(s) were hit in at least `at_least` populations."""
-    population_of = {sample_id: sample.population_id for sample_id, sample in reseq_dict.items()}
+    population_of = {sample_id: sample.population_id for sample_id, sample in sample_dict.items()}
     genes_to_populations = collections.defaultdict(set)
     mutation_genes = {}
     for call in calls:
@@ -149,24 +149,24 @@ def convergent_ids(calls, reseq_dict, *, at_least=DEFAULT_CONVERGENT):
                 [name for name in get_gene_list(gene) if name] if gene else [])
         for name in names:
             genes_to_populations[name].add(population_of[call.sample_id])
-    needed = at_least.needed(population_count(reseq_dict))
+    needed = at_least.needed(population_count(sample_dict))
     return {mutation_id
             for mutation_id, names in mutation_genes.items()
             if any(len(genes_to_populations[name]) >= needed for name in names)}
 
 
-def fixed_ids(calls, reseq_dict, *, at_least=DEFAULT_FIXED):
+def fixed_ids(calls, sample_dict, *, at_least=DEFAULT_FIXED):
     """The ids of the mutations present at both of the last two sampled time points of at
     least `at_least` populations."""
     # population -> the time points sampled from it, from the samples rather than the calls.
     time_points = collections.defaultdict(set)
-    for sample in reseq_dict.values():
+    for sample in sample_dict.values():
         if sample.time_point is not None:
             time_points[sample.population_id].add(sample.time_point)
     # (population, time point) -> the mutations present there, across its samples.
     present = collections.defaultdict(set)
     for call in calls:
-        sample = reseq_dict.get(call.sample_id)
+        sample = sample_dict.get(call.sample_id)
         if call.present is not True or sample is None or sample.time_point is None:
             continue
         present[(sample.population_id, sample.time_point)].add(call.mutation_id)
@@ -178,5 +178,5 @@ def fixed_ids(calls, reseq_dict, *, at_least=DEFAULT_FIXED):
         last, second_last = sorted(sampled)[-2:][::-1]
         for mutation_id in present[(population, last)] & present[(population, second_last)]:
             fixed_in[mutation_id] += 1
-    needed = at_least.needed(population_count(reseq_dict))
+    needed = at_least.needed(population_count(sample_dict))
     return {mutation_id for mutation_id, count in fixed_in.items() if count >= needed}

@@ -21,7 +21,7 @@ from mutint_common.util import get_user_context
 from mutint_experiment import models
 from mutint_filter.view_filter import get_view_filter
 from mutint_sample.mutation_matrix import RowSet, build_matrix
-from mutint_sample.util import get_all_calls_filtered, get_reseq_ordered_dict
+from mutint_sample.util import get_all_calls_filtered, get_ordered_sample_dict
 
 from mutint_compare import analysis
 
@@ -37,7 +37,7 @@ def mutation_table(request):
         population = mutint_sample.views.common.get_population(request)
         sample_type = mutint_sample.views.common.get_sample_type(request)
 
-        reseq_dict = get_reseq_ordered_dict(experiment.id, population, sample_type)
+        sample_dict = get_ordered_sample_dict(experiment.id, population, sample_type)
         # The reader's own filter, from their session. No filter_type: every mutation type
         # renders here, AMP included -- this is the one page that shows the whole experiment.
         calls = get_all_calls_filtered(experiment.id,
@@ -47,24 +47,24 @@ def mutation_table(request):
         thresholds = analysis.get_thresholds(request, experiment.id)
         sets = (
             RowSet("convergent", "Convergent",
-                   frozenset(analysis.convergent_ids(calls, reseq_dict,
+                   frozenset(analysis.convergent_ids(calls, sample_dict,
                                                      at_least=thresholds.convergent))),
             RowSet("fixed", "Fixed",
-                   frozenset(analysis.fixed_ids(calls, reseq_dict,
+                   frozenset(analysis.fixed_ids(calls, sample_dict,
                                                 at_least=thresholds.fixed))),
         )
-        matrix = build_matrix(calls, reseq_dict, experiment=experiment, sets=sets,
+        matrix = build_matrix(calls, sample_dict, experiment=experiment, sets=sets,
                               csv_title="%s_ExpID%d" % (experiment.name, experiment.id))
-        populations = analysis.population_count(reseq_dict)
+        populations = analysis.population_count(sample_dict)
 
         context.update({
-            "ales": mutint_sample.views.common.get_population_names(experiment.id),
+            "population_names": mutint_sample.views.common.get_population_names(experiment.id),
             "experiment_name": experiment.name,
             "population": population,
             "sample_type": sample_type,
             "experiment_id": experiment.id,
-            "ale_project_name": experiment.project.name,
-            "ale_project_id": experiment.project.id,
+            "project_name": experiment.project.name,
+            "project_id": experiment.project.id,
             "title": experiment.name + " Mutations",
             "template_header": "Compare",
             "matrix": matrix,
