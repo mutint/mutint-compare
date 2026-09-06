@@ -1,0 +1,28 @@
+{% extends "mutation_matrix/page.html" %}
+{% comment %} Core's matrix page with Compare's two controls in its form and its own sentence
+   under the filter's. What the controls change is which rows the server marks convergent or
+   fixed, so they sit behind the same Apply as the filter; what the reader then shows is the
+   Show menu's business, in the browser. {% endcomment %}
+{% block matrix_form_fields %}
+    <label class="view-filter-field" style="margin-left: 10px;" title="A number of populations, or a percentage of them (e.g. 50%)">
+        convergent in &ge;
+        <input type="text" name="{{ param_convergent }}" size="3" class="form-control"
+               value="{{ thresholds.convergent }}"/>
+    </label>
+    <label class="view-filter-field" style="margin-left: 10px;" title="A number of populations, or a percentage of them (e.g. 50%)">
+        fixed in &ge;
+        <input type="text" name="{{ param_fixed }}" size="3" class="form-control"
+               value="{{ thresholds.fixed }}"/>
+        populations
+    </label>
+{% endblock %}
+{% block matrix_summary %}
+    <div class="row" style="margin: -6px 0 10px 0; color: #666; font-size: 12px;">
+        <b>Convergent</b>: a gene hit in at least {{ convergent_needed }} of the
+        {{ population_count }} population{{ population_count|pluralize }} shown
+        ({{ thresholds.convergent }}), counting lineages rather than samples.
+        <b>Fixed</b>: present at both of the last two time points sampled from a population,
+        in at least {{ fixed_needed }} of them ({{ thresholds.fixed }}). Both are decided on the
+        rows as filtered above; the Show menu chooses which to display.
+    </div>
+{% endblock %}

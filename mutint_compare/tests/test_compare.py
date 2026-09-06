@@ -1,8 +1,7 @@
 """The Compare page, now that it is a plugin.
 
 These can only run in an assembled project. mutint-core has no plugin discovery of any kind,
-so `./mutint test` cannot reach this file -- run it as `./mutint test mutint_compare`. That is
-already true of mutint-fixation and mutint-converge.
+so `./mutint test` cannot reach this file -- run it as `./mutint test mutint_compare`.
 """
 
 from django.contrib.auth.models import User
@@ -56,6 +55,24 @@ class CompareTestCase(TestCase):
         # description and falls back to the coordinate -- not by sample_name.
         self.assertIn("1 / 30000 / 1-1", html)
 
+    def test_the_show_menu_offers_convergent_and_fixed(self):
+        """The two sets are always offered, counted, even when empty -- one sample fixes
+        nothing and converges with nothing."""
+        html = self._get().content.decode()
+        self.assertIn('data-role="show"', html)
+        self.assertIn("Convergent (0)", html)
+        self.assertIn("Fixed (0)", html)
+
+    def test_the_thresholds_are_in_the_form_and_remembered(self):
+        html = self._get(convergent_min="3", fixed_min="50%").content.decode()
+        self.assertRegex(html, r'name="convergent_min"[^>]*value="3"')
+        self.assertRegex(html, r'name="fixed_min"[^>]*value="50%"')
+        # The sidebar's link carries no parameters; the page comes back as it was left.
+        again = self._get().content.decode()
+        self.assertIn('value="3"', again)
+        self.assertIn('value="50%"', again)
+        self.assertRegex(again, r"at least 3 of the\s+1 population shown")
+
     def test_it_is_reachable_by_name(self):
         """The nav entry and breseq_table's link both reverse 'compare' rather than
         hardcoding a path, so the name is part of the contract."""
@@ -96,15 +113,13 @@ class CompareTestCase(TestCase):
         self.assertNotIn('name="show_exp_filtered"', html)
         self.assertNotIn('name="show_global_filtered"', html)
 
-    def test_the_other_tables_render_them_too(self):
-        # follow=True: /fixation is an APPEND_SLASH redirect, and an unfollowed GET returns
-        # an empty body -- which is why the assertNotIn this replaced passed without ever
-        # looking at the page.
-        html = self.client.get(
-            "/fixation", {"experiment_id": self.experiment.id}, follow=True
-        ).content.decode()
-
-        self.assertIn('name="min_freq"', html)
+    def test_the_retired_pages_are_gone(self):
+        """Fixed Mutations and Converged Mutations were pages of their own and are the Show
+        menu now; this used to fetch /fixation to check it rendered the filter too."""
+        for path in ("/fixation/", "/converge/"):
+            with self.subTest(path=path):
+                response = self.client.get(path, {"experiment_id": self.experiment.id})
+                self.assertEqual(404, response.status_code)
 
     def test_the_table_is_the_mutation_matrix(self):
         """Core's matrix, with this experiment's samples as columns and the two menus.
@@ -116,7 +131,7 @@ class CompareTestCase(TestCase):
         html = self._get().content.decode()
 
         self.assertIn("data-mutation-matrix", html)
-        self.assertIn('<th class="breseq-sample"', html)
+        self.assertIn('<th class="breseq-sample sample-palette-0"', html)
         self.assertIn("1 / 30000 / 1-1", html)
         self.assertIn('data-role="columns"', html)
         self.assertIn('data-role="samples"', html)

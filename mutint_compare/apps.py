@@ -8,10 +8,13 @@ class CompareConfig(AppConfig):
 
     Compare lived in mutint-core as `mutint_sample.views.mutations.mutation_table` until it was
     pulled out here. It never belonged there: it is one way of *looking* at an experiment's
-    mutations, the same kind of thing mutint-fixation and mutint-converge are, and a deployment
-    may reasonably want it gone or want its own in its place. Core keeps everything Compare is
-    built from -- the table builder, the shared table template, the tag and filter endpoints --
-    because Search and the other two plugins use all of it too.
+    mutations, and a deployment may reasonably want it gone or want its own in its place. Core
+    keeps everything Compare is built from -- the table builder, the shared table template,
+    the tag and filter endpoints -- because Search uses all of it too.
+
+    mutint-fixation and mutint-converge were two more ways of looking, each this page over a
+    narrower queryset; they are the Show menu's Convergent and Fixed sets now, computed in
+    `analysis.py` with thresholds the reader sets. Their example datasets came with them.
     """
 
     name = 'mutint_compare'
@@ -37,7 +40,14 @@ class CompareConfig(AppConfig):
         # A pivot table is only legible against a pattern -- rows present everywhere,
         # rows in one sample only, and every mutation type. See
         # examples/compare/README.md.
+        examples = os.path.join(os.path.dirname(__file__), 'examples')
         register_example_dataset(
-            'mutint-compare-example',
-            os.path.join(os.path.dirname(__file__), 'examples', 'compare'),
+            'mutint-compare-example', os.path.join(examples, 'compare'),
             description='Two lineages over three flasks, every mutation type, one population sample.')
+        # Each with a known answer, so an empty Show menu is unambiguous. See the READMEs.
+        register_example_dataset(
+            'mutint-compare-convergence-example', os.path.join(examples, 'convergence'),
+            description='Three lineages; one gene hit in two of them, another in one only.')
+        register_example_dataset(
+            'mutint-compare-fixation-example', os.path.join(examples, 'fixation'),
+            description='Two lineages over four flasks; mutations that arrive and stay.')
