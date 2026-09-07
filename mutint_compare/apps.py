@@ -27,6 +27,7 @@ class CompareConfig(AppConfig):
         from mutint_common.nav_registry import (
             EXPERIMENT_SECTION, register_nav_item,
         )
+        from mutint_compare.version import __version__
         register_plugin_urlpatterns([
             re_path(r'^compare/', include('mutint_compare.urls')),
         ])
@@ -34,7 +35,7 @@ class CompareConfig(AppConfig):
         # reverse, so a half-installed plugin cannot leave a dead link in the sidebar. Core's
         # own entries use literals only because several rely on APPEND_SLASH redirects.
         register_nav_item('Compare', url_name='compare', section=EXPERIMENT_SECTION)
-        register_about_section(self, name='mutint-compare',
+        register_about_section(self, name='mutint-compare', version=__version__,
                                template='about/sections/mutint_compare.html')
 
         # A pivot table is only legible against a pattern -- rows present everywhere,
