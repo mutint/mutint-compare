@@ -34,6 +34,19 @@ Three things the fold changed, deliberately:
 `compare/page.html` extends core's page through its two blocks, `matrix_form_fields` for the
 two inputs and `matrix_summary` for the sentence saying what the thresholds resolved to.
 
+## Ancestral rows are display, not data
+
+The designated ancestor's mutations are subtracted from the calls both sets are decided on,
+and hidden from the table by default. `ancestral_shown` -- core's toggle, one choice per
+experiment in the session, shared with the per-sample page, offered by the button in the
+summary line because the view sets `ancestral_mode = "toggle"` -- makes the view build its
+*rows* from `get_all_calls_filtered(include_ancestral=True)` and hand `build_matrix` the ids
+to tint. The sets are still computed first, from the evolved calls, so an ancestral row is in
+neither and Convergent or Fixed in the Show menu drops it; "All" and the CSV export count it,
+because it is a row the server produced. The ancestor itself has no column:
+`get_ordered_sample_dict` leaves it out either way, and its own calls fall through
+`build_matrix` for want of one. `test_ancestral_display.py` pins each of those.
+
 ## Tests
 
 `./mutint test mutint_compare` from an assembled project; core has no plugin discovery. To run

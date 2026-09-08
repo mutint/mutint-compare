@@ -24,5 +24,10 @@
         <b>Fixed</b>: present at both of the last two time points sampled from a population,
         in at least {{ fixed_needed }} of them ({{ thresholds.fixed }}). Both are decided on the
         rows as filtered above; the Show menu chooses which to display.
+        {% if ancestral_shown %}
+            Rows shaded red are the designated ancestor's mutations, with cells for the evolved
+            samples still carrying them; the ancestor itself has no column, and neither set
+            was decided with them, so Convergent or Fixed in the Show menu hides them.
+        {% endif %}
     </div>
 {% endblock %}

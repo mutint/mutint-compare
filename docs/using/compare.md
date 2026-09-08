@@ -12,6 +12,12 @@ those choices follow you from experiment to experiment.
 the rows as you have filtered them, so a frequency cutoff or an ignored gene changes the answer
 immediately, and both leave out the designated ancestor's mutations.
 
+Those ancestral mutations are hidden by default. **Show ancestral mutations**, in the line
+under the filter, draws them shaded red, with cells for the evolved samples still carrying
+them; the ancestor itself gets no column, neither set counts them, and nothing computed
+changes. The choice is remembered for you per experiment and is the same one the Mutations
+page offers.
+
 **Convergent** — a mutation whose gene was hit in at least so many populations (ALEs). It is
 the *gene* that converges, not the mutation: two different mutations in one gene in two
 lineages both qualify, and the same gene hit twice in one lineage is recurrence, not
