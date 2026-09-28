@@ -55,6 +55,37 @@ class CompareTestCase(TestCase):
         # description and falls back to the coordinate -- not by sample_name.
         self.assertIn("1 / 30000 / 1-1", html)
 
+    def test_the_treatment_picker_appears_with_a_treatment_and_narrows_the_columns(self):
+        """The picker is core's, on the shared page, and is drawn only when the experiment's
+        samples carry any treatment; `?treatment=` then narrows the columns, and the sets
+        are decided over what is shown."""
+        html = self._get().content.decode()
+        self.assertNotIn("All treatments", html)
+
+        other = Population.objects.create(experiment=self.experiment, name=2)
+        lactose = Sample.objects.create(
+            population=other, time_point=30000, name="1-1", is_clonal=True,
+            source_name="2-30000-1-1", treatment="lactose")
+        self.sample.treatment = "glucose"
+        self.sample.save(update_fields=["treatment"])
+        MutationCall.objects.create(sample=lactose, mutation=self.mutation,
+                                    present=True, frequency=1.0)
+
+        html = self._get().content.decode()
+        self.assertIn("All treatments", html)
+        self.assertIn('value="glucose"', html)
+        self.assertIn('value="lactose"', html)
+        self.assertIn('data-sample="%d"' % self.sample.id, html)
+        self.assertIn('data-sample="%d"' % lactose.id, html)
+        # The Samples menu names each sample's treatment beside it.
+        self.assertIn('<span class="text-muted">glucose</span>', html)
+
+        html = self._get(treatment="lactose").content.decode()
+        self.assertIn('data-sample="%d"' % lactose.id, html)
+        self.assertNotIn('data-sample="%d"' % self.sample.id, html)
+        self.assertRegex(html, r"of the\s+1 population shown")
+        self.assertRegex(html, r'selected="selected"\s+value="lactose"')
+
     def test_the_show_menu_offers_convergent_and_fixed(self):
         """The two sets are always offered, counted, even when empty -- one sample fixes
         nothing and converges with nothing."""

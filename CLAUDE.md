@@ -34,6 +34,12 @@ Three things the fold changed, deliberately:
 `compare/page.html` extends core's page through its two blocks, `matrix_form_fields` for the
 two inputs and `matrix_summary` for the sentence saying what the thresholds resolved to.
 
+**`?treatment=` narrows the columns the way `?population=` does**, through the same
+`get_ordered_sample_dict` call, and the sets are decided over the samples shown -- so under a
+treatment "at least N populations" counts the populations with a sample under it, and neither
+rule was taught the word. The picker is core's, on `mutation_matrix/page.html`, drawn only
+when the experiment's samples carry any treatment at all.
+
 ## Ancestral rows are display, not data
 
 The designated ancestor's mutations are subtracted from the calls both sets are decided on,

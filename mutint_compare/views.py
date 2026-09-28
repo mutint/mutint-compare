@@ -41,9 +41,14 @@ def mutation_table(request):
         start_time = time.time()
         experiment = mutint_sample.views.common.get_experiment(request)
         population = mutint_sample.views.common.get_population(request)
+        treatment = mutint_sample.views.common.get_treatment(request)
         sample_type = mutint_sample.views.common.get_sample_type(request)
 
-        sample_dict = get_ordered_sample_dict(experiment.id, population, sample_type)
+        # The treatment narrows the *columns*, as the population does; the sets below are
+        # decided over the samples shown, so "at least N populations" counts the populations
+        # with a sample under this treatment and the rules themselves know nothing of it.
+        sample_dict = get_ordered_sample_dict(experiment.id, population, sample_type,
+                                             treatment=treatment)
         # The reader's own filter, from their session. No filter_type: every mutation type
         # renders here, AMP included -- this is the one page that shows the whole experiment.
         view_filter = get_view_filter(request, experiment.id)
@@ -77,8 +82,10 @@ def mutation_table(request):
 
         context.update({
             "population_names": mutint_sample.views.common.get_population_names(experiment.id),
+            "treatment_names": mutint_sample.views.common.get_treatment_names(experiment.id),
             "experiment_name": experiment.name,
             "population": population,
+            "treatment": treatment,
             "sample_type": sample_type,
             "experiment_id": experiment.id,
             "project_name": experiment.project.name,
