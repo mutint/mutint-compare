@@ -43,35 +43,6 @@ class ThresholdTestCase(TestCase):
         self.assertEqual(1, thresholds.fixed.needed(50), "any ALE")
 
 
-class ThresholdRequestTestCase(TestCase):
-    """Read when present, remembered in the session, defaulted when nonsense."""
-
-    def _request(self, **params):
-        request = RequestFactory().get("/compare/", params)
-        request.session = {}
-        return request
-
-    def test_present_parameters_are_read_and_remembered(self):
-        request = self._request(convergent_min="3", fixed_min="50%")
-        thresholds = analysis.get_thresholds(request, 7)
-        self.assertEqual("3", str(thresholds.convergent))
-        self.assertEqual("50%", str(thresholds.fixed))
-        self.assertEqual({"7": {"convergent": "3", "fixed": "50%"}},
-                         request.session[analysis.SESSION_KEY])
-
-    def test_absent_parameters_fall_back_to_the_session_then_the_defaults(self):
-        request = self._request()
-        request.session[analysis.SESSION_KEY] = {"7": {"convergent": "4", "fixed": "2"}}
-        self.assertEqual("4", str(analysis.get_thresholds(request, 7).convergent))
-        self.assertEqual(Thresholds(), analysis.get_thresholds(request, 8))
-
-    def test_nonsense_reverts_that_threshold_to_its_default(self):
-        request = self._request(convergent_min="lots", fixed_min="2")
-        thresholds = analysis.get_thresholds(request, 7)
-        self.assertEqual(analysis.DEFAULT_CONVERGENT, thresholds.convergent)
-        self.assertEqual("2", str(thresholds.fixed))
-
-
 class _Rules(TestCase):
     """One experiment, samples by (ALE, time point), calls by hand."""
 

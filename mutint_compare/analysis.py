@@ -15,6 +15,12 @@ time points sampled from it -- the last two *sampled*, so an ALE sampled at 1, 5
 compares 500 with 30000, and one sampled once can never fix anything. The row qualifies when
 that holds in at least *N* populations; the default is 1, the old rule.
 
+**This module is the reference implementation, and the page does not call it.** Compare
+computes both sets in the browser, over whatever the reader is showing at that moment --
+`static/mutint_compare/compare_sets.js` is a port of the two functions below, and
+`tests/test_sets_js.py` runs it under node against these over the example datasets and
+random cases, so the two cannot drift apart unnoticed. Change a rule here and there together.
+
 Both read the list of calls the page's rows are built from, so what the reader's filter and
 the ancestor subtraction removed upstream is gone here too -- which is the only place the
 filter can go. Fixation asks what is present at the last time point, so hiding a
@@ -32,12 +38,6 @@ from dataclasses import dataclass
 from typing import Optional
 
 from mutint_common.util import get_gene_list
-
-#: Query-string parameters, and what they mean when absent.
-PARAM_CONVERGENT = "convergent_min"
-PARAM_FIXED = "fixed_min"
-SESSION_KEY = "mutint_compare_thresholds"
-MAX_REMEMBERED_EXPERIMENTS = 20
 
 
 @dataclass(frozen=True)
@@ -104,28 +104,18 @@ def _parse_or(text, default):
         return default
 
 
-def get_thresholds(request, experiment_id):
-    """The thresholds this reader set for this experiment. Never None.
+#: What the importer writes into `Mutation.gene` for a mutation it could not annotate: the
+#: literal string, from `get_annotated_gene_list(None)` (see mutint-core's CLAUDE.md). It is no
+#: gene, and counted as one it made every unannotated mutation hit in two populations
+#: "convergent" with every other.
+NO_GENE = "None"
 
-    The same resolution `get_view_filter` uses, for the same reason: the parameters are read
-    when **present** in the query string and remembered in the session, so the sidebar's
-    links -- which carry no parameters -- bring the reader back to the page as they left it.
-    What is remembered is a display preference derived from the URL they are looking at.
-    """
-    store = request.session.get(SESSION_KEY) or {}
-    key = str(experiment_id)
-    if PARAM_CONVERGENT in request.GET or PARAM_FIXED in request.GET:
-        thresholds = Thresholds.from_dict({"convergent": request.GET.get(PARAM_CONVERGENT),
-                                           "fixed": request.GET.get(PARAM_FIXED)})
-        store.pop(key, None)
-        store[key] = thresholds.as_dict()
-        while len(store) > MAX_REMEMBERED_EXPERIMENTS:
-            del store[next(iter(store))]
-        request.session[SESSION_KEY] = store
-        return thresholds
-    if key in store:
-        return Thresholds.from_dict(store[key])
-    return Thresholds()
+
+def gene_names(gene):
+    """The genes a mutation touches, for counting: blanks and the no-gene marker dropped."""
+    if not gene:
+        return []
+    return [name for name in get_gene_list(gene) if name and name != NO_GENE]
 
 
 def population_count(sample_dict):
@@ -144,9 +134,7 @@ def convergent_ids(calls, sample_dict, *, at_least=DEFAULT_CONVERGENT):
         if names is None:
             # An intergenic mutation names two genes; an unannotated one names none, and
             # "no gene" must not be a gene every such mutation shares.
-            gene = call.mutation.gene
-            names = mutation_genes[call.mutation_id] = (
-                [name for name in get_gene_list(gene) if name] if gene else [])
+            names = mutation_genes[call.mutation_id] = gene_names(call.mutation.gene)
         for name in names:
             genes_to_populations[name].add(population_of[call.sample_id])
     needed = at_least.needed(population_count(sample_dict))

@@ -7,8 +7,8 @@ __pycache__/
 # Django
 *.sqlite3
 local_settings.py
-static/
-media/
+/static/
+/media/
 *.log
 
 # Distribution / packaging

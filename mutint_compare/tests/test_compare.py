@@ -55,12 +55,13 @@ class CompareTestCase(TestCase):
         # description and falls back to the coordinate -- not by sample_name.
         self.assertIn("1 / 30000 / 1-1", html)
 
-    def test_the_treatment_picker_appears_with_a_treatment_and_narrows_the_columns(self):
-        """The picker is core's, on the shared page, and is drawn only when the experiment's
-        samples carry any treatment; `?treatment=` then narrows the columns, and the sets
-        are decided over what is shown."""
+    def test_a_treatment_is_a_tab_and_narrows_nothing_on_the_server(self):
+        """Treatments are a tab of their own, decided in the browser like Samples: drawn only
+        when some sample carries one, with every sample's column sent and labelled. The
+        query string narrows nothing any more -- there is no server-side picker for it to
+        come from."""
         html = self._get().content.decode()
-        self.assertNotIn("All treatments", html)
+        self.assertNotIn('data-tab="treatments"', html)
 
         other = Population.objects.create(experiment=self.experiment, name=2)
         lactose = Sample.objects.create(
@@ -71,38 +72,56 @@ class CompareTestCase(TestCase):
         MutationCall.objects.create(sample=lactose, mutation=self.mutation,
                                     present=True, frequency=1.0)
 
-        html = self._get().content.decode()
-        self.assertIn("All treatments", html)
-        self.assertIn('value="glucose"', html)
-        self.assertIn('value="lactose"', html)
+        html = self._get(treatment="lactose", population="2").content.decode()
+        self.assertIn('data-tab="treatments"', html)
+        self.assertIn('<li data-value="glucose" class="active">', html)
+        self.assertIn('<li data-value="lactose" class="active">', html)
+        self.assertIn('data-treatment="glucose"', html)
+        self.assertIn('data-treatment="lactose"', html)
         self.assertIn('data-sample="%d"' % self.sample.id, html)
         self.assertIn('data-sample="%d"' % lactose.id, html)
         # The Samples menu names each sample's treatment beside it.
         self.assertIn('<span class="text-muted">glucose</span>', html)
 
-        html = self._get(treatment="lactose").content.decode()
-        self.assertIn('data-sample="%d"' % lactose.id, html)
-        self.assertNotIn('data-sample="%d"' % self.sample.id, html)
-        self.assertRegex(html, r"of the\s+1 population shown")
-        self.assertRegex(html, r'selected="selected"\s+value="lactose"')
+    def test_the_tabs_are_in_order(self):
+        """Mutations, Treatments, Populations, Samples, Time, then the matrix's own."""
+        import re
+
+        self.sample.treatment = "glucose"
+        self.sample.save(update_fields=["treatment"])
+        ale = self.sample.population
+        Sample.objects.create(population=ale, time_point=500, name="1-1", is_clonal=False,
+                              source_name="1-500-1-1")
+        html = self._get().content.decode()
+        self.assertEqual(["filter", "treatments", "populations", "samples", "time", "rows",
+                          "display", "export"],
+                         re.findall(r'data-toggle="tab" data-tab="(\w+)"', html))
+        self.assertIn('href="#mutation_matrix-pane-filter">Mutations</a>', html)
+
+    def test_every_call_is_sent_and_the_filter_is_the_browsers_to_apply(self):
+        """The reader's filter excludes nothing on the server: it travels in the page, and
+        the call it would hide is still in the rows for the browser to drop -- and to bring
+        back without a round trip when the filter is cleared."""
+        response = self._get(min_freq="80")
+        html = response.content.decode()
+        self.assertIn('"min_freq": 80', html)
+        self.assertIn('"id": %d' % self.mutation.id, html)
 
     def test_the_show_menu_offers_convergent_and_fixed(self):
-        """The two sets are always offered, counted, even when empty -- one sample fixes
-        nothing and converges with nothing."""
+        """The two sets are always offered, and counted by the browser, which decides what
+        they hold over what is shown."""
         html = self._get().content.decode()
         self.assertIn('data-role="show"', html)
-        self.assertIn("Convergent (0)", html)
-        self.assertIn("Fixed (0)", html)
+        self.assertIn('<li data-value="convergent" data-client-set>', html)
+        self.assertIn('<li data-value="fixed" data-client-set>', html)
+        self.assertIn("compare_sets.js", html)
 
-    def test_the_thresholds_are_in_the_form_and_remembered(self):
-        html = self._get(convergent_min="3", fixed_min="50%").content.decode()
-        self.assertRegex(html, r'name="convergent_min"[^>]*value="3"')
-        self.assertRegex(html, r'name="fixed_min"[^>]*value="50%"')
-        # The sidebar's link carries no parameters; the page comes back as it was left.
-        again = self._get().content.decode()
-        self.assertIn('value="3"', again)
-        self.assertIn('value="50%"', again)
-        self.assertRegex(again, r"at least 3 of the\s+1 population shown")
+    def test_the_thresholds_are_boxes_the_browser_reads(self):
+        """No parameters and no session: the boxes carry `data-set-param`, the matrix
+        remembers them as a preference and hands them to the sets."""
+        html = self._get(convergent_min="3").content.decode()
+        self.assertRegex(html, r'data-set-param="convergent"[^>]*value="2"')
+        self.assertRegex(html, r'data-set-param="fixed"[^>]*value="1"')
 
     def test_it_is_reachable_by_name(self):
         """The nav entry and breseq_table's link both reverse 'compare' rather than
@@ -139,8 +158,8 @@ class CompareTestCase(TestCase):
         inverts: every page sharing this template gets working controls."""
         html = self._get().content.decode()
 
-        self.assertIn('name="min_freq"', html)
-        self.assertIn('name="ignore_genes"', html)
+        self.assertIn('data-role="filter-min"', html)
+        self.assertIn('data-role="filter-genes"', html)
         self.assertNotIn('name="show_exp_filtered"', html)
         self.assertNotIn('name="show_global_filtered"', html)
 

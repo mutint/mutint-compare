@@ -1,17 +1,16 @@
 """The cross-sample mutation table: the experiment's mutations down, its samples across.
 
 The page is core's **mutation matrix** -- `mutint_sample.mutation_matrix.build_matrix` and
-`mutation_matrix/page.html`, extended by `compare/page.html` -- with this experiment's evolved
-calls as its rows. What is Compare's own is the queryset below -- every call the experiment
-holds, through the reader's filter, every mutation type included -- and the two **row sets**
-it hands the matrix, Convergent and Fixed, with the thresholds that decide them. See
-`analysis.py`; mutint-fixation and mutint-converge used to be this page over a narrower
-queryset, and the Show menu is where they went.
+`mutation_matrix/page.html`, extended by `compare/page.html` -- with every call the experiment
+holds as its rows. What is Compare's own is the two **row sets** it offers, Convergent and
+Fixed, with the thresholds that decide them.
 
-The designated ancestor's mutations are subtracted from all of that. On request
-(`ancestral_shown`, the button in the summary line) the page draws them as well, tinted red,
-with cells for the evolved samples still carrying them -- display only, decided after the
-sets, so neither set ever holds one.
+**Everything is decided in the browser.** The view sends every sample, every call unfiltered,
+and the designated ancestor's mutations flagged; the page applies the reader's filter, hides
+samples by population, treatment, type and time, draws or drops the ancestral rows, and
+computes the two sets over what is shown -- `static/mutint_compare/compare_sets.js`, a port
+of `analysis.py` held to it by `tests/test_sets_js.py`. So hiding a population changes what
+converged, at once, which is what a reader looking at the table expects.
 """
 
 import logging
@@ -24,9 +23,10 @@ import mutint_sample.views.common
 from mutint_common.logger import join_extras, user_extra
 from mutint_common.util import get_user_context
 from mutint_experiment import models
-from mutint_experiment.ancestor import ancestral_mutation_ids, ancestral_shown
+from mutint_experiment.ancestor import ancestral_mutation_ids, ancestral_shown, describe_ancestor
 from mutint_filter.view_filter import get_view_filter
-from mutint_sample.mutation_matrix import RowSet, build_matrix
+from mutint_filter.views import filter_json
+from mutint_sample.mutation_matrix import ClientSet, build_matrix
 from mutint_sample.util import get_all_calls_filtered, get_ordered_sample_dict
 
 from mutint_compare import analysis
@@ -40,53 +40,21 @@ def mutation_table(request):
     try:
         start_time = time.time()
         experiment = mutint_sample.views.common.get_experiment(request)
-        population = mutint_sample.views.common.get_population(request)
-        treatment = mutint_sample.views.common.get_treatment(request)
-        sample_type = mutint_sample.views.common.get_sample_type(request)
 
-        # The treatment narrows the *columns*, as the population does; the sets below are
-        # decided over the samples shown, so "at least N populations" counts the populations
-        # with a sample under this treatment and the rules themselves know nothing of it.
-        sample_dict = get_ordered_sample_dict(experiment.id, population, sample_type,
-                                             treatment=treatment)
-        # The reader's own filter, from their session. No filter_type: every mutation type
-        # renders here, AMP included -- this is the one page that shows the whole experiment.
-        view_filter = get_view_filter(request, experiment.id)
-        calls = get_all_calls_filtered(experiment.id, view_filter=view_filter)
-        # The two row sets, over the evolved calls: filtered, ancestor subtracted, AMP
-        # included. The matrix annotates and offers; the reader chooses in the browser.
-        thresholds = analysis.get_thresholds(request, experiment.id)
-        sets = (
-            RowSet("convergent", "Convergent",
-                   frozenset(analysis.convergent_ids(calls, sample_dict,
-                                                     at_least=thresholds.convergent))),
-            RowSet("fixed", "Fixed",
-                   frozenset(analysis.fixed_ids(calls, sample_dict,
-                                                at_least=thresholds.fixed))),
-        )
-        # The rows are the same calls, unless the reader asked to see the ancestor's
-        # mutations too: then they come from the raw queryset and are tinted. The sets above
-        # were decided without them either way, so an ancestral row is in neither and the
-        # Show menu drops it. The ancestor itself has no column: `sample_dict` left it out.
-        shown = ancestral_shown(request, experiment.id)
-        if shown:
-            rows_from = get_all_calls_filtered(experiment.id, view_filter=view_filter,
-                                               include_ancestral=True)
-            ancestral_ids = ancestral_mutation_ids(experiment.id)
-        else:
-            rows_from, ancestral_ids = calls, frozenset()
-        matrix = build_matrix(rows_from, sample_dict, experiment=experiment, sets=sets,
-                              ancestral_mutation_ids=ancestral_ids,
+        # Every sample and every call, unfiltered, the ancestor's rows included and flagged:
+        # which samples show, which frequencies count, whether the ancestral rows are drawn and
+        # what is convergent or fixed are all decided in the browser, so changing any of them
+        # costs no round trip. The ancestor itself has no column: `sample_dict` leaves it out.
+        sample_dict = get_ordered_sample_dict(experiment.id)
+        calls = get_all_calls_filtered(experiment.id, include_ancestral=True)
+        matrix = build_matrix(calls, sample_dict, experiment=experiment,
+                              client_sets=(ClientSet("convergent", "Convergent"),
+                                           ClientSet("fixed", "Fixed")),
+                              ancestral_mutation_ids=ancestral_mutation_ids(experiment.id),
                               csv_title="%s_ExpID%d" % (experiment.name, experiment.id))
-        populations = analysis.population_count(sample_dict)
 
         context.update({
-            "population_names": mutint_sample.views.common.get_population_names(experiment.id),
-            "treatment_names": mutint_sample.views.common.get_treatment_names(experiment.id),
             "experiment_name": experiment.name,
-            "population": population,
-            "treatment": treatment,
-            "sample_type": sample_type,
             "experiment_id": experiment.id,
             "project_name": experiment.project.name,
             "project_id": experiment.project.id,
@@ -94,15 +62,12 @@ def mutation_table(request):
             "template_header": "Compare",
             "matrix": matrix,
             "empty_message": "No mutations to show for these samples and this filter.",
-            "thresholds": thresholds,
-            "population_count": populations,
-            "convergent_needed": thresholds.convergent.needed(populations),
-            "fixed_needed": thresholds.fixed.needed(populations),
-            "param_convergent": analysis.PARAM_CONVERGENT,
-            "param_fixed": analysis.PARAM_FIXED,
-            # This view honours the toggle, so the summary line may offer it.
-            "ancestral_mode": "toggle",
-            "ancestral_shown": shown,
+            # Where the browser starts: the reader's filter and the ancestral choice, both
+            # from the session, and both written back there through `/filter/set`.
+            "view_filter_state": filter_json(get_view_filter(request, experiment.id)),
+            "ancestor": describe_ancestor(experiment.id),
+            "ancestral_shown": ancestral_shown(request, experiment.id),
+            "default_thresholds": analysis.Thresholds().as_dict(),
         })
         logger.info("mutation performance", extra=join_extras(
             user_extra(request), {"time taken": time.time() - start_time}))

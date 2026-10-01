@@ -1,33 +1,25 @@
 {% extends "mutation_matrix/page.html" %}
-{% comment %} Core's matrix page with Compare's two controls in its form and its own sentence
-   under the filter's. What the controls change is which rows the server marks convergent or
-   fixed, so they sit behind the same Apply as the filter; what the reader then shows is the
-   Show menu's business, in the browser. {% endcomment %}
-{% block matrix_form_fields %}
+{% load static %}
+{% comment %} Core's matrix page with Compare's two thresholds in its Mutations pane. Both row
+   sets are decided in the browser, over the samples shown and the frequencies kept, by
+   compare_sets.js -- so a threshold, like every other control here, takes effect as it is
+   typed, and the sentence saying what each resolved to is written under the controls by the
+   script (`note` in that file). The boxes carry `data-set-param`, which is how the matrix
+   finds them, remembers them per experiment and hands them to the sets. {% endcomment %}
+{% block scripts_and_style %}
+    {{ block.super }}
+    <script src="{% static 'mutint_compare/compare_sets.js' %}?v={{ asset_version }}"></script>
+{% endblock %}
+{% block matrix_controls %}
     <label class="view-filter-field" style="margin-left: 10px;" title="A number of populations, or a percentage of them (e.g. 50%)">
         convergent in &ge;
-        <input type="text" name="{{ param_convergent }}" size="3" class="form-control"
-               value="{{ thresholds.convergent }}"/>
+        <input type="text" data-set-param="convergent" size="3" class="form-control"
+               value="{{ default_thresholds.convergent }}"/>
     </label>
     <label class="view-filter-field" style="margin-left: 10px;" title="A number of populations, or a percentage of them (e.g. 50%)">
         fixed in &ge;
-        <input type="text" name="{{ param_fixed }}" size="3" class="form-control"
-               value="{{ thresholds.fixed }}"/>
+        <input type="text" data-set-param="fixed" size="3" class="form-control"
+               value="{{ default_thresholds.fixed }}"/>
         populations
     </label>
-{% endblock %}
-{% block matrix_summary %}
-    <div class="row" style="margin: -6px 0 10px 0; color: #666; font-size: 12px;">
-        <b>Convergent</b>: a gene hit in at least {{ convergent_needed }} of the
-        {{ population_count }} population{{ population_count|pluralize }} shown
-        ({{ thresholds.convergent }}), counting lineages rather than samples.
-        <b>Fixed</b>: present at both of the last two time points sampled from a population,
-        in at least {{ fixed_needed }} of them ({{ thresholds.fixed }}). Both are decided on the
-        rows as filtered above; the Show menu chooses which to display.
-        {% if ancestral_shown %}
-            Rows shaded red are the designated ancestor's mutations, with cells for the evolved
-            samples still carrying them; the ancestor itself has no column, and neither set
-            was decided with them, so Convergent or Fixed in the Show menu hides them.
-        {% endif %}
-    </div>
 {% endblock %}
