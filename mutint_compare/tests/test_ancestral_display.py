@@ -2,7 +2,7 @@
 
 The page always carries the ancestor's rows, flagged `ancestral`, with cells for the evolved
 samples still carrying them; the ancestor itself has no column. The browser drops them unless
-the reader asks -- the Show/Hide button on the Mutations tab, one choice per experiment in the
+the reader asks -- the Show/Hide button on the Ancestral tab, one choice per experiment in the
 session (written through `/filter/set`), shared with the per-sample page -- and leaves them out
 of both row sets either way; `test_sets_js.py` covers that half.
 
@@ -79,10 +79,11 @@ class TestTheRowsAreAlwaysSent(AncestralDisplayTestCase):
         row = self.rows()[self.shared.id]
         self.assertEqual(4, sum(1 for cell in row["samples"] if cell))
 
-    def test_the_toggle_is_on_the_mutations_tab_and_says_who_the_ancestor_is(self):
+    def test_the_toggle_is_on_the_ancestral_tab_and_says_who_the_ancestor_is(self):
         body = self.html()
-        start = body.index('id="mutation_matrix-pane-filter"')
-        self.assertIn(BUTTON, body[start:body.index('id="mutation_matrix-pane-populations"')])
+        self.assertIn('data-tab="ancestral"', body)
+        start = body.index('id="mutation_matrix-pane-ancestral"')
+        self.assertIn(BUTTON, body[start:body.index('class="tab-pane', start)])
         self.assertIn('data-ancestor-name="%s"' % self.ancestor.label, body)
         self.assertIn('data-ancestral-shown="0"', body)
 

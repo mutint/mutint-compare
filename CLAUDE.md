@@ -11,7 +11,7 @@ mutation matrix**) carry the design of the matrix itself; this file is what is C
 
 The view sends every sample, every call -- unfiltered, the designated ancestor's mutations
 included and flagged -- and two `ClientSet`s, and that is all it decides. Core's matrix script
-applies the reader's filter, hides columns by sample, population, treatment, type and time,
+applies the reader's frequency range, hides columns by sample, population, treatment, type and time,
 draws or drops the ancestral rows, and asks this plugin's rules what the two sets hold, on
 every change; see **Compare decides in the browser** in `mutint-core/CLAUDE.md`. So hiding a
 population changes what converged at once: the sets are always decided over the table the
@@ -34,7 +34,7 @@ where node is not installed. Change a rule in both files.
 
 The rules at their defaults are the old ones exactly. The **threshold** is at least *N*
 populations, or at least *X%* of the populations shown, rounded up: `2` or `50%`, typed into
-the two boxes on the Mutations tab, which carry `data-set-param` and are remembered as a
+the two boxes on the Sets tab, beside the Show menu, which carry `data-set-param` and are remembered as a
 preference per experiment. A threshold that reads as nothing goes back to the default and the
 sentence under the controls says so.
 
@@ -56,7 +56,7 @@ Three things the fold changed, deliberately:
 
 The designated ancestor's mutations are always on the page, flagged, with cells for the
 evolved samples still carrying them; the ancestor itself has no column. The script drops them
-unless the reader asks -- the Show/Hide button on the Mutations tab, the `ancestral_shown`
+unless the reader asks -- the Show/Hide button on the Ancestral tab, the `ancestral_shown`
 session choice the per-sample page shares -- and leaves them out of both sets either way.
 `test_ancestral_display.py` pins what the server sends.
 

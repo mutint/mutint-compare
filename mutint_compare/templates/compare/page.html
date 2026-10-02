@@ -1,11 +1,11 @@
 {% extends "mutation_matrix/page.html" %}
 {% load static %}
-{% comment %} Core's matrix page with Compare's two thresholds in its Mutations pane. Both row
-   sets are decided in the browser, over the samples shown and the frequencies kept, by
-   compare_sets.js -- so a threshold, like every other control here, takes effect as it is
-   typed, and the sentence saying what each resolved to is written under the controls by the
-   script (`note` in that file). The boxes carry `data-set-param`, which is how the matrix
-   finds them, remembers them per experiment and hands them to the sets. {% endcomment %}
+{% comment %} Core's matrix page with Compare's two thresholds on its Sets tab, beside the Show
+   menu they decide. Both row sets are decided in the browser, over the samples shown and the
+   frequencies kept, by compare_sets.js -- so a threshold, like every other control here, takes
+   effect as it is typed, and the sentence saying what each resolved to is written under the
+   menu by the script (`note` in that file). The boxes carry `data-set-param`, which is how the
+   matrix finds them, remembers them per experiment and hands them to the sets. {% endcomment %}
 {% block scripts_and_style %}
     {{ block.super }}
     <script src="{% static 'mutint_compare/compare_sets.js' %}?v={{ asset_version }}"></script>

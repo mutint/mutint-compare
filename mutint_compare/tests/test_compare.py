@@ -84,7 +84,8 @@ class CompareTestCase(TestCase):
         self.assertIn('<span class="text-muted">glucose</span>', html)
 
     def test_the_tabs_are_in_order(self):
-        """Mutations, Treatments, Populations, Samples, Time, then the matrix's own."""
+        """Treatments, Populations, Samples, Time, then the matrix's own with Sets among them.
+        The Mutations tab is not offered for now."""
         import re
 
         self.sample.treatment = "glucose"
@@ -93,10 +94,15 @@ class CompareTestCase(TestCase):
         Sample.objects.create(population=ale, time_point=500, name="1-1", is_clonal=False,
                               source_name="1-500-1-1")
         html = self._get().content.decode()
-        self.assertEqual(["filter", "treatments", "populations", "samples", "time", "rows",
-                          "display", "export"],
+        self.assertEqual(["treatments", "populations", "samples", "time", "types",
+                          "references", "sets", "columns", "frequency", "export"],
                          re.findall(r'data-toggle="tab" data-tab="(\w+)"', html))
-        self.assertIn('href="#mutation_matrix-pane-filter">Mutations</a>', html)
+        self.assertNotIn("pane-filter", html)
+        # The thresholds sit on the Sets tab, beside the Show menu they decide.
+        start = html.index('id="mutation_matrix-pane-sets"')
+        sets = html[start:html.index('class="tab-pane', start)]
+        self.assertIn('data-role="show"', sets)
+        self.assertIn('data-set-param="convergent"', sets)
 
     def test_every_call_is_sent_and_the_filter_is_the_browsers_to_apply(self):
         """The reader's filter excludes nothing on the server: it travels in the page, and
@@ -158,8 +164,10 @@ class CompareTestCase(TestCase):
         inverts: every page sharing this template gets working controls."""
         html = self._get().content.decode()
 
+        # The frequency range, on the Frequency tab. The ignored-genes box is not offered for
+        # now, and the page applies no gene list without it.
         self.assertIn('data-role="filter-min"', html)
-        self.assertIn('data-role="filter-genes"', html)
+        self.assertNotIn('data-role="filter-genes"', html)
         self.assertNotIn('name="show_exp_filtered"', html)
         self.assertNotIn('name="show_global_filtered"', html)
 
@@ -181,7 +189,7 @@ class CompareTestCase(TestCase):
         html = self._get().content.decode()
 
         self.assertIn("data-mutation-matrix", html)
-        self.assertIn('<th class="breseq-sample sample-palette-0"', html)
+        self.assertIn('<th class="breseq-sample sample-palette-0 treatment-palette-none"', html)
         self.assertIn("1 / 30000 / 1-1", html)
         self.assertIn('data-role="columns"', html)
         self.assertIn('data-role="samples"', html)
