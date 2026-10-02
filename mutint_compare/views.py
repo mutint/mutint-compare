@@ -24,6 +24,7 @@ from mutint_common.logger import join_extras, user_extra
 from mutint_common.util import get_user_context
 from mutint_experiment import models
 from mutint_experiment.ancestor import ancestral_mutation_ids, ancestral_shown, describe_ancestor
+from mutint_experiment.permissions import can_edit_project
 from mutint_filter.view_filter import get_view_filter
 from mutint_filter.views import filter_json
 from mutint_sample.mutation_matrix import ClientSet, build_matrix
@@ -51,6 +52,10 @@ def mutation_table(request):
                               client_sets=(ClientSet("convergent", "Convergent"),
                                            ClientSet("fixed", "Fixed")),
                               ancestral_mutation_ids=ancestral_mutation_ids(experiment.id),
+                              # The Curate column, for a reader who can edit -- the gate the
+                              # sidebar's Curate entry asks. A locked experiment still offers
+                              # it; the curate pages refuse the write themselves.
+                              curate=can_edit_project(request.user, experiment.project),
                               csv_title="%s_ExpID%d" % (experiment.name, experiment.id))
 
         context.update({

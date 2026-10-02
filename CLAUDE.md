@@ -52,6 +52,15 @@ Three things the fold changed, deliberately:
 - **The export types `fixed_mut` and `converged_mut` are gone.** Export is the matrix's own
   CSV menu: the rows showing, or all of them.
 
+## The Curate column
+
+For a reader `can_edit_project` admits -- the gate the sidebar's Curate entry asks -- the view
+passes `build_matrix(curate=True)`, and each row gets a caret menu: **Edit**, the mutation's
+edit page with every carrying sample selected, and **Copy**, the Copy tab from the first
+carrying sample with the mutation selected -- and, where an ancestor is designated, **Copy to
+ancestor**, which copies it there directly, at 100%, and reloads. A locked experiment still shows it; the curate
+pages refuse the write themselves. See core's **The mutation matrix**.
+
 ## Ancestral rows are display, not data
 
 The designated ancestor's mutations are always on the page, flagged, with cells for the

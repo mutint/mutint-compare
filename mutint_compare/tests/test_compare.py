@@ -129,6 +129,22 @@ class CompareTestCase(TestCase):
         self.assertRegex(html, r'data-set-param="convergent"[^>]*value="2"')
         self.assertRegex(html, r'data-set-param="fixed"[^>]*value="1"')
 
+    def test_the_curate_column_is_for_readers_who_can_edit(self):
+        """The owner gets the Curate column first; a reader with read access does not."""
+        from mutint_experiment.permissions import grant_project_access
+
+        html = self._get().content.decode()
+        self.assertIn('<th class="breseq-curate" data-key="curate"></th>', html)
+        self.assertIn('"curate_edit_url"', html)
+
+        reader = User.objects.create(username="reader", email="r@e.com", is_active=True)
+        grant_project_access(self.experiment.project, reader, "read", granted_by=self.user)
+        self.client.force_login(reader)
+        html = self._get().content.decode()
+        self.assertIn("1 / 30000 / 1-1", html)
+        self.assertNotIn('data-key="curate"', html)
+        self.assertNotIn("curate_edit_url", html)
+
     def test_it_is_reachable_by_name(self):
         """The nav entry and breseq_table's link both reverse 'compare' rather than
         hardcoding a path, so the name is part of the contract."""
