@@ -56,7 +56,7 @@ Three things the fold changed, deliberately:
 
 The designated ancestor's mutations are always on the page, flagged, with cells for the
 evolved samples still carrying them; the ancestor itself has no column. The script drops them
-unless the reader asks -- the Show/Hide button on the Ancestral tab, the `ancestral_shown`
+unless the reader asks -- the Show/Hide button on the Mutations tab, the `ancestral_shown`
 session choice the per-sample page shares -- and leaves them out of both sets either way.
 `test_ancestral_display.py` pins what the server sends.
 
