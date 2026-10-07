@@ -27,6 +27,7 @@ from mutint_experiment.ancestor import ancestral_mutation_ids, ancestral_shown, 
 from mutint_experiment.permissions import can_edit_project
 from mutint_filter.view_filter import get_view_filter
 from mutint_filter.views import filter_json
+from mutint_export.util import safe_filename
 from mutint_sample.mutation_matrix import ClientSet, build_matrix
 from mutint_sample.util import get_all_calls_filtered, get_ordered_sample_dict
 
@@ -56,7 +57,8 @@ def mutation_table(request):
                               # sidebar's Curate entry asks. A locked experiment still offers
                               # it; the curate pages refuse the write themselves.
                               curate=can_edit_project(request.user, experiment.project),
-                              csv_title="%s_ExpID%d" % (experiment.name, experiment.id))
+                              csv_title="%s_%s" % (safe_filename(experiment.project.name),
+                                                   safe_filename(experiment.name)))
 
         context.update({
             "experiment_name": experiment.name,
