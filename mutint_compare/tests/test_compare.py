@@ -85,7 +85,8 @@ class CompareTestCase(TestCase):
 
     def test_the_tabs_are_in_order(self):
         """Treatments, Populations, Samples, Time Points, then the matrix's own, Sets last
-        before Export. The reader's filter has no tab here for now."""
+        before Export. The reader's filter has no tab here for now; the Filter tab is the
+        matrix's rules over the columns, not that."""
         import re
 
         self.sample.treatment = "glucose"
@@ -95,7 +96,7 @@ class CompareTestCase(TestCase):
                               source_name="1-500-1-1")
         html = self._get().content.decode()
         self.assertEqual(["treatments", "populations", "samples", "time", "types",
-                          "references", "columns", "frequency", "sets", "export"],
+                          "references", "columns", "frequency", "match", "sets", "export"],
                          re.findall(r'data-toggle="tab" data-tab="(\w+)"', html))
         self.assertNotIn("pane-filter", html)
         # The thresholds sit on the Sets tab, beside the Show menu they decide.

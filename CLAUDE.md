@@ -15,7 +15,9 @@ applies the reader's frequency range, hides columns by sample, population, treat
 draws or drops the ancestral rows, and asks this plugin's rules what the two sets hold, on
 every change; see **Compare decides in the browser** in `mutint-core/CLAUDE.md`. So hiding a
 population changes what converged at once: the sets are always decided over the table the
-reader is looking at.
+reader is looking at. The Filter tab -- rules over the columns, shared with the per-sample
+Mutations page -- is core's too, and filters the rows shown without touching what the sets
+hold, as hiding a mutation type does.
 
 ## Convergent and Fixed are row sets, and used to be plugins
 
