@@ -55,7 +55,9 @@ reflected the next time you load the page.
 
 **Export CSV** is a menu of two. *Filtered mutations* writes what is on the screen — after the
 Show menu, the hidden samples and types, and the search box. *All mutations* writes every row
-the server produced, hidden or not. Visible columns only, either way.
+the server produced, hidden or not. Visible columns only, either way. The file opens in
+Excel with its arrows and check marks intact: it starts with the UTF-8 byte-order mark
+Excel takes as the sign to read it as UTF-8.
 
 ## Examples
 
