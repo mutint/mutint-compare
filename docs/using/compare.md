@@ -60,8 +60,9 @@ rules — and *All mutations* writes every row the table holds, hidden or not. *
 every sample, hidden ones included. **Format**: *Text table (CSV)* for a
 spreadsheet or a script — it opens in Excel with its arrows and check marks intact, because
 it starts with the UTF-8 byte-order mark Excel takes as the sign to read it as UTF-8;
-*Formatted table (HTML)* is a single file that looks like the table on this page, colours,
-frequency bars and all, for a report or an email; *Graphical table (SVG)* is a vector
+*Formatted table (HTML)* is a single file that looks like the table on this page, colours
+and shading intact, and keeps them when opened in Excel (a frequency is a number on a shaded
+cell there, since a spreadsheet cannot draw a bar); *Graphical table (SVG)* is a vector
 drawing for a figure. Compare remembers your three choices.
 
 ## Examples
