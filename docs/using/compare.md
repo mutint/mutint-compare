@@ -57,7 +57,7 @@ Three menus and an **Export** button. **Rows**: *Filtered mutations* writes what
 screen — after the Show menu, the hidden samples, types and references, and the Filter tab's
 rules — and *All mutations* writes every row the table holds, hidden or not. **Columns**:
 *Visible columns* writes the columns and samples showing, *All columns* every column and
-every sample, hidden ones included. **Format**: *Machine-readable table (CSV)* for a
+every sample, hidden ones included. **Format**: *Text table (CSV)* for a
 spreadsheet or a script — it opens in Excel with its arrows and check marks intact, because
 it starts with the UTF-8 byte-order mark Excel takes as the sign to read it as UTF-8;
 *Formatted table (HTML)* is a single file that looks like the table on this page, colours,
