@@ -52,7 +52,7 @@ Three things the fold changed, deliberately:
 - **The time axis comes from the samples, not the calls** -- the samples *shown*. A time
   point every call was filtered out of is still the last time point, and nothing fixed there.
 - **The export types `fixed_mut` and `converged_mut` are gone.** Export is the matrix's own
-  CSV menu: the rows showing, or all of them.
+  Export tab: rows showing or all, columns showing or all, as CSV, HTML or SVG.
 
 ## The Curate column
 
